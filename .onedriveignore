@@ -1,0 +1,10 @@
+# OneDrive ignore file - prevent syncing of build artifacts
+.gradle/
+build/
+app/build/
+.idea/
+local.properties
+*.iml
+.cxx/
+.externalNativeBuild/
+

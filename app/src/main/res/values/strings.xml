@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Pet_Scheduling</string>
+    <!-- TODO: Replace with your actual Web Client ID from Firebase Console -->
+    <!-- Get it from: Firebase Console > Authentication > Sign-in method > Google > Web SDK configuration -->
+    <string name="default_web_client_id">517221054105-77a8f2qt8cnv4t29osfbualbl66vqqgh.apps.googleusercontent.com</string>
+    
+    <!-- Login Screen -->
+    <string name="pet_scheduling">Pet Scheduling</string>
+    <string name="sign_in_to_manage_pets">Sign in to manage your pets</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="sign_in">Sign In</string>
+    <string name="create_account">Create Account</string>
+    <string name="or">OR</string>
+    <string name="continue_with_google">Continue with Google</string>
+</resources>
