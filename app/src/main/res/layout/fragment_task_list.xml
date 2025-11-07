@@ -190,7 +190,7 @@
         android:layout_marginBottom="80dp"
         android:src="@android:drawable/ic_menu_help"
         app:tint="@android:color/white"
-        app:backgroundTint="?attr/colorSecondary" />
+        app:backgroundTint="?attr/colorPrimary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

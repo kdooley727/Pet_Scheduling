@@ -285,13 +285,25 @@ class TaskListFragment : Fragment() {
                         Toast.makeText(requireContext(), "AI suggestions added!", Toast.LENGTH_SHORT).show()
                     } else {
                         android.util.Log.w("TaskListFragment", "Suggestions is null or empty")
-                        Toast.makeText(requireContext(), "Failed to generate suggestions. Please check your API key and internet connection.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            requireContext(), 
+                            "Failed to generate suggestions. You may have exceeded your free tier quota. Please try again later or check your API usage.",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
+                } catch (e: com.hfad.pet_scheduling.utils.QuotaExceededException) {
+                    android.util.Log.w("TaskListFragment", "Quota exceeded", e)
+                    Toast.makeText(
+                        requireContext(),
+                        "Free tier quota exceeded. Your API key works, but you've reached the free tier limit. Please wait 15 seconds and try again, or set up billing in Google AI Studio for higher limits.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 } catch (e: Exception) {
                     android.util.Log.e("TaskListFragment", "Error in generateAISuggestions", e)
                     val errorMessage = when {
                         e.message?.contains("API key") == true -> "Invalid API key. Check local.properties"
                         e.message?.contains("network") == true || e.message?.contains("timeout") == true -> "Network error. Check your internet connection."
+                        e.message?.contains("quota") == true || e.message?.contains("429") == true -> "API quota exceeded. Please wait a few minutes and try again, or set up billing in Google Cloud Console."
                         else -> "Error: ${e.message ?: "Unknown error"}"
                     }
                     Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()

@@ -12,7 +12,28 @@
           "package_name": "com.hfad.pet_scheduling"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "517221054105-st89f6jihhbv1t43orr7rrjn3cifbgt0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hfad.pet_scheduling",
+            "certificate_hash": "3a6b188890b4178f4aab9c421648766541b2226e"
+          }
+        },
+        {
+          "client_id": "517221054105-vukoo42gh41mrpupmn5ug10t57qvrmat.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hfad.pet_scheduling",
+            "certificate_hash": "b7d20218ba0476f35122b8dbdc8799e257c6ddfd"
+          }
+        },
+        {
+          "client_id": "517221054105-77a8f2qt8cnv4t29osfbualbl66vqqgh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA8RChrKSTTRu4ChvHjoHSqb1_JeLBNGeA"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "517221054105-77a8f2qt8cnv4t29osfbualbl66vqqgh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

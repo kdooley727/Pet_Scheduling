@@ -6,8 +6,64 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
+class QuotaExceededException(message: String) : Exception(message)
+
 class GeminiHelper(private val apiKey: String) {
-    private val apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+    // First, try to list available models, then use the first available one
+    private suspend fun getAvailableModel(): String? = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("https://generativelanguage.googleapis.com/v1beta/models?key=$apiKey")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                android.util.Log.d("GeminiHelper", "Models list response: $response")
+                val jsonResponse = org.json.JSONObject(response)
+                val models = jsonResponse.getJSONArray("models")
+                
+                android.util.Log.d("GeminiHelper", "Found ${models.length()} models")
+                
+                // Look for a model that supports generateContent
+                for (i in 0 until models.length()) {
+                    val model = models.getJSONObject(i)
+                    val name = model.getString("name")
+                    val supportedMethods = model.optJSONArray("supportedGenerationMethods")
+                    
+                    android.util.Log.d("GeminiHelper", "Model: $name, Methods: $supportedMethods")
+                    
+                    if (supportedMethods != null) {
+                        for (j in 0 until supportedMethods.length()) {
+                            if (supportedMethods.getString(j) == "generateContent") {
+                                android.util.Log.d("GeminiHelper", "Found available model: $name")
+                                return@withContext name
+                            }
+                        }
+                    }
+                }
+            } else {
+                val errorResponse = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                android.util.Log.e("GeminiHelper", "Error listing models: $responseCode - $errorResponse")
+            }
+            null
+        } catch (e: Exception) {
+            android.util.Log.e("GeminiHelper", "Error listing models", e)
+            null
+        }
+    }
+    
+    // Try different model names - AI Studio keys might use different endpoints
+    private val apiEndpoints = listOf(
+        // Try with full model path format
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent",
+        "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+        // Try without models/ prefix (some APIs use different format)
+        "https://generativelanguage.googleapis.com/v1beta/gemini-1.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/gemini-1.5-pro:generateContent"
+    )
 
     /**
      * Generate a suggested schedule for a pet based on pet information
@@ -53,6 +109,31 @@ class GeminiHelper(private val apiKey: String) {
      * Helper method to call Gemini API via REST
      */
     private suspend fun callGeminiAPI(prompt: String): String? = withContext(Dispatchers.IO) {
+        // First, try to get an available model
+        val availableModel = getAvailableModel()
+        if (availableModel != null) {
+            val endpoint = "https://generativelanguage.googleapis.com/v1beta/$availableModel:generateContent"
+            android.util.Log.d("GeminiHelper", "Using discovered model: $endpoint")
+            val result = tryCallAPI(endpoint, prompt)
+            if (result != null) {
+                return@withContext result
+            }
+        }
+        
+        // Fallback: Try each endpoint until one works
+        for (endpoint in apiEndpoints) {
+            android.util.Log.d("GeminiHelper", "Trying endpoint: $endpoint")
+            val result = tryCallAPI(endpoint, prompt)
+            if (result != null) {
+                android.util.Log.d("GeminiHelper", "Success with endpoint: $endpoint")
+                return@withContext result
+            }
+        }
+        android.util.Log.e("GeminiHelper", "All API endpoints failed")
+        null
+    }
+    
+    private suspend fun tryCallAPI(apiUrl: String, prompt: String): String? = withContext(Dispatchers.IO) {
         try {
             val url = URL("$apiUrl?key=$apiKey")
             val connection = url.openConnection() as HttpURLConnection
@@ -73,6 +154,9 @@ class GeminiHelper(private val apiKey: String) {
                 })
             }
             
+            android.util.Log.d("GeminiHelper", "Calling API: $apiUrl")
+            android.util.Log.d("GeminiHelper", "Request body: $requestBody")
+            
             connection.outputStream.use { output ->
                 output.write(requestBody.toString().toByteArray())
             }
@@ -80,6 +164,7 @@ class GeminiHelper(private val apiKey: String) {
             val responseCode = connection.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 val response = connection.inputStream.bufferedReader().use { it.readText() }
+                android.util.Log.d("GeminiHelper", "API response: $response")
                 val jsonResponse = org.json.JSONObject(response)
                 val candidates = jsonResponse.getJSONArray("candidates")
                 if (candidates.length() > 0) {
@@ -91,11 +176,19 @@ class GeminiHelper(private val apiKey: String) {
                 }
             } else {
                 val errorResponse = connection.errorStream?.bufferedReader()?.use { it.readText() }
-                android.util.Log.e("GeminiHelper", "API error: $responseCode - $errorResponse")
+                android.util.Log.e("GeminiHelper", "API error ($apiUrl): $responseCode - $errorResponse")
+                
+                // Handle quota errors (429) - these indicate the API key works but quota is exceeded
+                if (responseCode == 429) {
+                    android.util.Log.w("GeminiHelper", "Quota exceeded for endpoint: $apiUrl")
+                    // This means the model exists and API key works, but free tier quota is 0
+                    // Return a special indicator so we can show a helpful message
+                    throw QuotaExceededException("Free tier quota exceeded. Please wait or set up billing.")
+                }
             }
             null
         } catch (e: Exception) {
-            android.util.Log.e("GeminiHelper", "Error calling Gemini API", e)
+            android.util.Log.e("GeminiHelper", "Error calling Gemini API ($apiUrl)", e)
             null
         }
     }
