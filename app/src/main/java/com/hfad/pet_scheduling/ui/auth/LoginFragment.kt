@@ -123,28 +123,50 @@ class LoginFragment : Fragment() {
 
         binding.btnGoogleSignIn.setOnClickListener {
             val signInIntent = googleSignInHelper.getSignInIntent()
-            signInIntent?.let { googleSignInLauncher.launch(it) }
-                ?: Toast.makeText(
+            if (signInIntent != null) {
+                googleSignInLauncher.launch(signInIntent)
+            } else {
+                android.util.Log.e("LoginFragment", "Google Sign-In intent is null. Check web client ID.")
+                Toast.makeText(
                     requireContext(),
                     "Google Sign-In not configured. Please check your web client ID.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_LONG
                 ).show()
+            }
         }
     }
 
     private fun handleGoogleSignIn(account: GoogleSignInAccount) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                val idToken = account.idToken
+                if (idToken == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Google sign in failed: No ID token received",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    android.util.Log.e("LoginFragment", "Google Sign-In: ID token is null")
+                    return@launch
+                }
+                
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
                 val result = com.google.firebase.auth.FirebaseAuth.getInstance()
                     .signInWithCredential(credential).await()
                 
+                android.util.Log.d("LoginFragment", "Google Sign-In successful: ${result.user?.email}")
                 // Navigation will happen automatically via auth state observer
             } catch (e: Exception) {
+                android.util.Log.e("LoginFragment", "Google sign in failed", e)
+                val errorMessage = when {
+                    e.message?.contains("network") == true -> "Network error. Please check your internet connection."
+                    e.message?.contains("10") == true -> "Google Sign-In configuration error. Check SHA-1 fingerprint in Firebase."
+                    else -> "Google sign in failed: ${e.message}"
+                }
                 Toast.makeText(
                     requireContext(),
-                    "Google sign in failed: ${e.message}",
-                    Toast.LENGTH_SHORT
+                    errorMessage,
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }

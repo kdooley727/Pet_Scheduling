@@ -5,6 +5,20 @@ plugins {
     kotlin("kapt")
 }
 
+// Load Gemini API key from local.properties
+val geminiApiKey: String = run {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        val lines = localPropertiesFile.readLines()
+        lines.find { it.startsWith("GEMINI_API_KEY=") }
+            ?.substringAfter("GEMINI_API_KEY=")
+            ?.trim()
+            ?: ""
+    } else {
+        ""
+    }
+}
+
 android {
     namespace = "com.hfad.pet_scheduling"
     compileSdk = 34
@@ -17,6 +31,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Set Gemini API key in BuildConfig
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildTypes {
@@ -30,12 +47,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     buildFeatures {
@@ -82,7 +99,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
     // Gemini AI
-    implementation("com.google.ai.client.generativeai:generativeai:0.1.2")
+    implementation("com.google.ai.client.generativeai:generativeai:0.2.2")
     implementation("com.google.guava:guava:31.1-android")
 
     // WorkManager for background tasks

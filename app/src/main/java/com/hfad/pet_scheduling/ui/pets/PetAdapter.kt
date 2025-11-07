@@ -5,13 +5,15 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.hfad.pet_scheduling.data.local.entities.Pet
 import com.hfad.pet_scheduling.databinding.ItemPetBinding
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.DateTimeUtils
 
 class PetAdapter(
-    private val onPetClick: (Pet) -> Unit
+    private val onPetClick: (Pet) -> Unit,
+    private val onPetLongClick: (Pet) -> Unit
 ) : ListAdapter<Pet, PetAdapter.PetViewHolder>(PetDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PetViewHolder {
@@ -48,9 +50,29 @@ class PetAdapter(
                 } ?: run {
                     tvPetAge.visibility = ViewGroup.GONE
                 }
+                
+                // Load pet photo if available
+                pet.photoUrl?.let { photoUrl ->
+                    if (photoUrl.isNotEmpty()) {
+                        Glide.with(binding.root.context)
+                            .load(photoUrl)
+                            .circleCrop()
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .into(ivPetPhoto)
+                    } else {
+                        ivPetPhoto.setImageResource(android.R.drawable.ic_menu_gallery)
+                    }
+                } ?: run {
+                    ivPetPhoto.setImageResource(android.R.drawable.ic_menu_gallery)
+                }
 
                 root.setOnClickListener {
                     onPetClick(pet)
+                }
+                
+                root.setOnLongClickListener {
+                    onPetLongClick(pet)
+                    true
                 }
             }
         }

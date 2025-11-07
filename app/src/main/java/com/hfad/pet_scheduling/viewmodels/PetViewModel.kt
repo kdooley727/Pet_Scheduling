@@ -71,19 +71,27 @@ class PetViewModel(private val petRepository: PetRepository) : ViewModel() {
     /**
      * Create or update a pet
      */
-    fun savePet(pet: Pet) {
+    fun savePet(pet: Pet, isNewPet: Boolean = false) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                if (pet.petId.isEmpty()) {
-                    // New pet - should not happen with UUID, but handle it
-                    petRepository.insertPet(pet)
+                _errorMessage.value = null
+                
+                android.util.Log.d("PetViewModel", "Saving pet: name=${pet.name}, type=${pet.type}, isNewPet=$isNewPet")
+                
+                if (isNewPet) {
+                    // New pet - insert
+                    val result = petRepository.insertPet(pet)
+                    android.util.Log.d("PetViewModel", "Pet inserted with result: $result")
                 } else {
+                    // Existing pet - update
                     petRepository.updatePet(pet)
+                    android.util.Log.d("PetViewModel", "Pet updated successfully")
                 }
                 _isLoading.value = false
             } catch (e: Exception) {
-                _errorMessage.value = "Error saving pet: ${e.message}"
+                android.util.Log.e("PetViewModel", "Error saving pet", e)
+                _errorMessage.value = "Error saving pet: ${e.message ?: e.javaClass.simpleName}"
                 _isLoading.value = false
             }
         }

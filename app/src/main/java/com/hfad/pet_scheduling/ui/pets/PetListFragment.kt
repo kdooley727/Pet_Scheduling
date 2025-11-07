@@ -56,13 +56,22 @@ class PetListFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        petAdapter = PetAdapter { pet ->
-            // Navigate to pet detail or edit screen
-            val bundle = Bundle().apply {
-                putString("petId", pet.petId)
+        petAdapter = PetAdapter(
+            onPetClick = { pet ->
+                // Navigate to task list for this pet
+                val bundle = Bundle().apply {
+                    putString("petId", pet.petId)
+                }
+                findNavController().navigate(R.id.action_petListFragment_to_taskListFragment, bundle)
+            },
+            onPetLongClick = { pet ->
+                // Navigate to edit pet
+                val bundle = Bundle().apply {
+                    putString("petId", pet.petId)
+                }
+                findNavController().navigate(R.id.action_petListFragment_to_addEditPetFragment, bundle)
             }
-            findNavController().navigate(R.id.action_petListFragment_to_addEditPetFragment, bundle)
-        }
+        )
 
         binding.recyclerViewPets.apply {
             layoutManager = LinearLayoutManager(requireContext())
