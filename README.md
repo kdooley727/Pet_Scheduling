@@ -139,7 +139,9 @@ app/src/main/java/com/hfad/pet_scheduling/
 
 ## 📸 Screenshots
 
-_Add screenshots of your app here to showcase the UI/UX_
+<img width="464" height="1009" alt="image" src="https://github.com/user-attachments/assets/c3e0775d-e616-4993-bf65-1647705cafd4" />
+<img width="579" height="965" alt="Screenshot 2025-11-05 094206" src="https://github.com/user-attachments/assets/c8c93b1b-63a4-45cd-b722-73fa1feafbc0" />
+
 
 ## 🎯 Key Technical Highlights
 
@@ -172,8 +174,8 @@ This project is open source and available for educational purposes.
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
-- LinkedIn: [Your LinkedIn Profile]
+- GitHub: [@kdooley727](https://github.com/kdooley727)
+- LinkedIn: [https://www.linkedin.com/in/kyle-dooley-database/]
 
 ---
 
