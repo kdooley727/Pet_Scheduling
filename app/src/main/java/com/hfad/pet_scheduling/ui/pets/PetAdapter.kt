@@ -13,7 +13,8 @@ import com.hfad.pet_scheduling.utils.DateTimeUtils
 
 class PetAdapter(
     private val onPetClick: (Pet) -> Unit,
-    private val onPetLongClick: (Pet) -> Unit
+    private val onPetLongClick: (Pet) -> Unit,
+    private val onShareClick: (Pet) -> Unit
 ) : ListAdapter<Pet, PetAdapter.PetViewHolder>(PetDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PetViewHolder {
@@ -73,6 +74,10 @@ class PetAdapter(
                 root.setOnLongClickListener {
                     onPetLongClick(pet)
                     true
+                }
+                
+                btnShare.setOnClickListener {
+                    onShareClick(pet)
                 }
             }
         }

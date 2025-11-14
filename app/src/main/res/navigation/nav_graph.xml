@@ -3,7 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/loginFragment"
+    app:enterAnim="@anim/slide_in_right"
+    app:exitAnim="@anim/slide_out_left"
+    app:popEnterAnim="@anim/slide_in_left"
+    app:popExitAnim="@anim/slide_out_right">
 
     <fragment
         android:id="@+id/loginFragment"
@@ -48,6 +52,18 @@
         <action
             android:id="@+id/action_petListFragment_to_taskListFragment"
             app:destination="@id/taskListFragment" />
+        <action
+            android:id="@+id/action_petListFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_petListFragment_to_statisticsFragment"
+            app:destination="@id/statisticsFragment" />
+        <action
+            android:id="@+id/action_petListFragment_to_sharePetFragment"
+            app:destination="@id/sharePetFragment" />
+        <action
+            android:id="@+id/action_petListFragment_to_manageSharedAccessFragment"
+            app:destination="@id/manageSharedAccessFragment" />
     </fragment>
 
     <fragment
@@ -108,6 +124,34 @@
             android:id="@+id/action_taskDetailFragment_to_addEditTaskFragment"
             app:destination="@id/addEditTaskFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.hfad.pet_scheduling.ui.settings.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_manageSharedAccessFragment"
+            app:destination="@id/manageSharedAccessFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/statisticsFragment"
+        android:name="com.hfad.pet_scheduling.ui.statistics.StatisticsFragment"
+        android:label="Statistics"
+        tools:layout="@layout/fragment_statistics" />
+
+    <fragment
+        android:id="@+id/sharePetFragment"
+        android:name="com.hfad.pet_scheduling.ui.sharing.SharePetFragment"
+        android:label="Share Pet"
+        tools:layout="@layout/fragment_share_pet" />
+
+    <fragment
+        android:id="@+id/manageSharedAccessFragment"
+        android:name="com.hfad.pet_scheduling.ui.sharing.ManageSharedAccessFragment"
+        android:label="Shared Access"
+        tools:layout="@layout/fragment_manage_shared_access" />
 
 </navigation>
 

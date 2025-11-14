@@ -49,7 +49,8 @@ class TaskDetailFragment : Fragment() {
         val application = requireActivity().application as PetSchedulingApplication
         val factory = ViewModelFactory(
             application.petRepository,
-            application.scheduleRepository
+            application.scheduleRepository,
+            application
         )
         scheduleViewModel = ViewModelProvider(this, factory)[ScheduleViewModel::class.java]
 

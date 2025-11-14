@@ -5,6 +5,7 @@ import android.util.Log
 import com.hfad.pet_scheduling.data.local.AppDatabase
 import com.hfad.pet_scheduling.data.repository.PetRepository
 import com.hfad.pet_scheduling.data.repository.ScheduleRepository
+import com.hfad.pet_scheduling.utils.CloudSyncManager
 
 class PetSchedulingApplication : Application() {
     companion object {
@@ -52,6 +53,15 @@ class PetSchedulingApplication : Application() {
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing ScheduleRepository", e)
+            throw e
+        }
+    }
+
+    val cloudSyncManager by lazy {
+        try {
+            CloudSyncManager(this)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing CloudSyncManager", e)
             throw e
         }
     }

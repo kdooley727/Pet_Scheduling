@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "517221054105-fbdq6mkodh8mre643l8lg9pia2jkrqtk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hfad.pet_scheduling",
+            "certificate_hash": "69e8b495c7e0d27aab0c9207a9f7b317d8a5352c"
+          }
+        },
+        {
           "client_id": "517221054105-st89f6jihhbv1t43orr7rrjn3cifbgt0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
