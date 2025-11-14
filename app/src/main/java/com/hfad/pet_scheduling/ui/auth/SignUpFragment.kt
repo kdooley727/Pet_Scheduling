@@ -53,7 +53,8 @@ class SignUpFragment : Fragment() {
         val application = requireActivity().application as PetSchedulingApplication
         val factory = ViewModelFactory(
             application.petRepository,
-            application.scheduleRepository
+            application.scheduleRepository,
+            application
         )
         authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
 

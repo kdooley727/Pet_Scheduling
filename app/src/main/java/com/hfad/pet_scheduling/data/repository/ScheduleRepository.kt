@@ -43,6 +43,10 @@ class ScheduleRepository(
         return taskDao.getUpcomingTasks(petIds, currentTime, limit)
     }
 
+    suspend fun getAllActiveTasks(): List<ScheduleTask> {
+        return taskDao.getAllActiveTasks()
+    }
+
     suspend fun insertTask(task: ScheduleTask): Long {
         return taskDao.insertTask(task)
     }
@@ -70,6 +74,10 @@ class ScheduleRepository(
     // Completed Task Operations
     fun getCompletedTasksByTaskId(taskId: String): Flow<List<CompletedTask>> {
         return completedTaskDao.getCompletedTasksByTaskId(taskId)
+    }
+
+    suspend fun getCompletedTasksByPet(petId: String): List<CompletedTask> {
+        return completedTaskDao.getCompletedTasksByPet(petId)
     }
 
     fun getCompletedTasksInDateRange(

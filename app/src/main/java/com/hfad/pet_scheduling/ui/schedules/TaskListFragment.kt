@@ -17,8 +17,10 @@ import com.hfad.pet_scheduling.viewmodels.ScheduleViewModel
 import com.hfad.pet_scheduling.viewmodels.ViewModelFactory
 import com.hfad.pet_scheduling.viewmodels.PetViewModel
 import com.hfad.pet_scheduling.utils.GeminiHelper
+import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -35,6 +37,7 @@ class TaskListFragment : Fragment() {
     private var allTasks: List<com.hfad.pet_scheduling.data.local.entities.ScheduleTask> = emptyList()
     private var currentFilter: String = "all" // "all", "today", "week"
     private var selectedCategory: String? = null
+    private var searchQuery: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,7 +62,8 @@ class TaskListFragment : Fragment() {
         val application = requireActivity().application as PetSchedulingApplication
         val factory = ViewModelFactory(
             application.petRepository,
-            application.scheduleRepository
+            application.scheduleRepository,
+            application
         )
         scheduleViewModel = ViewModelProvider(this, factory)[ScheduleViewModel::class.java]
         petViewModel = ViewModelProvider(this, factory)[PetViewModel::class.java]
@@ -68,6 +72,7 @@ class TaskListFragment : Fragment() {
         setupObservers()
         setupClickListeners()
         setupFilters()
+        setupSearch()
 
         // Load tasks for this pet
         scheduleViewModel.loadTasksForPet(petId!!)
@@ -90,6 +95,13 @@ class TaskListFragment : Fragment() {
         binding.recyclerViewTasks.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = taskAdapter
+            // Add item animations
+            itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator().apply {
+                addDuration = 300
+                removeDuration = 300
+                moveDuration = 300
+                changeDuration = 300
+            }
         }
     }
 
@@ -125,6 +137,194 @@ class TaskListFragment : Fragment() {
 
         binding.fabAISuggestions.setOnClickListener {
             generateAISuggestions()
+        }
+
+        binding.fabExport.setOnClickListener {
+            showExportDialog()
+        }
+    }
+
+    private fun showExportDialog() {
+        val options = arrayOf("Export as HTML (for PDF)", "Export as CSV")
+        
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Export Pet Schedule")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> exportToHTML()
+                    1 -> exportToCSV()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun exportToHTML() {
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        petId?.let { id ->
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                try {
+                    binding.progressBar.visibility = View.VISIBLE
+                    val application = requireActivity().application as PetSchedulingApplication
+                    
+                    // Get pet data
+                    val pet = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        application.petRepository.getPetByIdSuspend(id)
+                    }
+                    
+                    if (pet == null) {
+                        Toast.makeText(requireContext(), "Pet not found", Toast.LENGTH_SHORT).show()
+                        binding.progressBar.visibility = View.GONE
+                        return@launch
+                    }
+
+                    // Get all tasks (including inactive) for completed task details
+                    val allTasksFlow = application.scheduleRepository.getActiveTasksByPet(id)
+                    val activeTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        allTasksFlow.first()
+                    }
+
+                    // Get completed tasks
+                    val completedTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        application.scheduleRepository.getCompletedTasksByPet(id)
+                    }
+                    
+                    // Get task details for completed tasks (including inactive ones)
+                    val allTaskIds = (activeTasks.map { it.taskId } + completedTasks.map { it.taskId }).distinct()
+                    val allTasksMap = mutableMapOf<String, ScheduleTask>()
+                    activeTasks.forEach { allTasksMap[it.taskId] = it }
+                    // Fetch any missing tasks
+                    allTaskIds.forEach { taskId ->
+                        if (!allTasksMap.containsKey(taskId)) {
+                            application.scheduleRepository.getTaskByIdSuspend(taskId)?.let {
+                                allTasksMap[taskId] = it
+                            }
+                        }
+                    }
+                    val allTasksForExport: List<ScheduleTask> = allTasksMap.values.toList()
+
+                    // Export
+                    val exportHelper = com.hfad.pet_scheduling.utils.ExportHelper(requireContext())
+                    val uri = exportHelper.exportToHTML(pet, allTasksForExport, completedTasks)
+                    
+                    if (uri != null) {
+                        exportHelper.shareFile(uri, "Pet_Schedule_${pet.name}.html", "text/html")
+                        Toast.makeText(requireContext(), "Export ready to share", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "Error creating export", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("TaskListFragment", "Error exporting", e)
+                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    binding.progressBar.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun exportToCSV() {
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        petId?.let { id ->
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                try {
+                    binding.progressBar.visibility = View.VISIBLE
+                    val application = requireActivity().application as PetSchedulingApplication
+                    
+                    // Get pet data
+                    val pet = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        application.petRepository.getPetByIdSuspend(id)
+                    }
+                    
+                    if (pet == null) {
+                        Toast.makeText(requireContext(), "Pet not found", Toast.LENGTH_SHORT).show()
+                        binding.progressBar.visibility = View.GONE
+                        return@launch
+                    }
+
+                    // Get all tasks (including inactive) for completed task details
+                    val allTasksFlow = application.scheduleRepository.getActiveTasksByPet(id)
+                    val activeTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        allTasksFlow.first()
+                    }
+
+                    // Get completed tasks
+                    val completedTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        application.scheduleRepository.getCompletedTasksByPet(id)
+                    }
+                    
+                    // Get task details for completed tasks (including inactive ones)
+                    val allTaskIds = (activeTasks.map { it.taskId } + completedTasks.map { it.taskId }).distinct()
+                    val allTasksMap = mutableMapOf<String, ScheduleTask>()
+                    activeTasks.forEach { allTasksMap[it.taskId] = it }
+                    // Fetch any missing tasks
+                    allTaskIds.forEach { taskId ->
+                        if (!allTasksMap.containsKey(taskId)) {
+                            application.scheduleRepository.getTaskByIdSuspend(taskId)?.let {
+                                allTasksMap[taskId] = it
+                            }
+                        }
+                    }
+                    val allTasksForExport = allTasksMap.values.toList()
+
+                    // Export
+                    val exportHelper = com.hfad.pet_scheduling.utils.ExportHelper(requireContext())
+                    val uri = exportHelper.exportToCSV(pet, allTasksForExport, completedTasks)
+                    
+                    if (uri != null) {
+                        exportHelper.shareFile(uri, "Pet_Schedule_${pet.name}.csv", "text/csv")
+                        Toast.makeText(requireContext(), "Export ready to share", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "Error creating export", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("TaskListFragment", "Error exporting", e)
+                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    binding.progressBar.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun setupSearch() {
+        binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                searchQuery = binding.etSearch.text.toString().trim()
+                applyFilters()
+                // Hide keyboard
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+                true
+            } else {
+                false
+            }
+        }
+
+        binding.etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                searchQuery = s?.toString()?.trim() ?: ""
+                applyFilters()
+            }
+        })
+
+        // Clear search when clear icon is clicked
+        binding.tilSearch.setEndIconOnClickListener { view ->
+            binding.etSearch.setText("")
+            searchQuery = ""
+            applyFilters()
         }
     }
 
@@ -173,6 +373,16 @@ class TaskListFragment : Fragment() {
 
     private fun applyFilters() {
         var filteredTasks = allTasks
+
+        // Apply search filter
+        if (searchQuery.isNotEmpty()) {
+            val query = searchQuery.lowercase()
+            filteredTasks = filteredTasks.filter { task ->
+                task.title.lowercase().contains(query) ||
+                task.description?.lowercase()?.contains(query) == true ||
+                task.category.lowercase().contains(query)
+            }
+        }
 
         // Apply category filter
         selectedCategory?.let { category ->
@@ -337,7 +547,7 @@ class TaskListFragment : Fragment() {
             for (i in 0 until jsonArray.length()) {
                 val taskJson = jsonArray.getJSONObject(i)
                 val title = taskJson.getString("title")
-                val description = taskJson.optString("description", null).takeIf { it.isNotEmpty() }
+                val description = taskJson.optString("description").takeIf { it.isNotEmpty() }
                 val category = taskJson.optString("category", com.hfad.pet_scheduling.utils.Constants.TaskCategory.OTHER)
                 val suggestedTime = taskJson.optString("suggestedTime", "08:00")
                 val recurrencePattern = taskJson.optString("recurrencePattern", com.hfad.pet_scheduling.utils.Constants.RecurrencePattern.DAILY)

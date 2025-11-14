@@ -10,6 +10,14 @@ interface CompletedTaskDao {
     fun getCompletedTasksByTaskId(taskId: String): Flow<List<CompletedTask>>
 
     @Query("""
+        SELECT ct.* FROM completed_tasks ct
+        INNER JOIN schedule_tasks st ON ct.taskId = st.taskId
+        WHERE st.petId = :petId
+        ORDER BY ct.completedAt DESC
+    """)
+    suspend fun getCompletedTasksByPet(petId: String): List<CompletedTask>
+
+    @Query("""
         SELECT * FROM completed_tasks 
         WHERE taskId IN (:taskIds) 
         AND completedAt BETWEEN :startTime AND :endTime

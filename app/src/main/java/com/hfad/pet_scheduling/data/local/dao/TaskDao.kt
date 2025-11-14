@@ -12,6 +12,9 @@ interface TaskDao {
     @Query("SELECT * FROM schedule_tasks WHERE petId IN (:petIds) AND isActive = 1 ORDER BY startTime ASC")
     fun getActiveTasksByPets(petIds: List<String>): Flow<List<ScheduleTask>>
 
+    @Query("SELECT * FROM schedule_tasks WHERE isActive = 1 ORDER BY startTime ASC")
+    suspend fun getAllActiveTasks(): List<ScheduleTask>
+
     @Query("SELECT * FROM schedule_tasks WHERE taskId = :taskId")
     suspend fun getTaskById(taskId: String): ScheduleTask?
 

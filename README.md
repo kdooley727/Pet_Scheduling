@@ -12,9 +12,12 @@ Pet Scheduling is a full-featured mobile application designed to help pet owners
 - **Multi-Pet Support**: Manage multiple pets with individual profiles
 - **Pet Profiles**: Store pet information including name, type, breed, birth date, photos, and notes
 - **Pet Types Supported**: Dogs, Cats, Birds, Fish, Rabbits, Hamsters, and more
+- **Pet Photos**: Upload and store pet photos with image picker integration
+- **Emergency Contacts**: Store veterinarian and emergency contact information for each pet
 
 ### 📅 Schedule Management
 - **Task Scheduling**: Create recurring tasks with customizable schedules
+- **Task Templates**: Save and reuse common task configurations
 - **Task Categories**: 
   - Feeding
   - Medication
@@ -26,6 +29,7 @@ Pet Scheduling is a full-featured mobile application designed to help pet owners
   - Custom tasks
 - **Recurrence Patterns**: Daily, Weekly, Monthly, Yearly, or Custom schedules
 - **Task Completion Tracking**: Mark tasks as completed with notes and timestamps
+- **Task History**: View completed tasks and completion statistics
 
 ### 🤖 AI-Powered Features
 - **Smart Schedule Suggestions**: Google Gemini AI integration generates personalized care schedules based on pet information
@@ -35,16 +39,42 @@ Pet Scheduling is a full-featured mobile application designed to help pet owners
 - **Customizable Reminders**: Set reminders 5, 15, 30, 60, or 120 minutes before scheduled tasks
 - **Background Notifications**: WorkManager integration for reliable reminder delivery
 - **Notification Channels**: Organized notification system for better user experience
+- **Notification Rescheduling**: Automatic rescheduling of missed notifications
+- **Action Notifications**: Quick actions directly from notification tray
 
 ### 👥 Collaboration Features
 - **Shared Access**: Share pet schedules with family members or pet sitters
 - **Permission Levels**: View-only, Edit, or Full Access permissions
 - **Multi-User Support**: Multiple users can manage the same pet's schedule
+- **Manage Shared Access**: View and manage all shared pet access permissions
+- **Cloud Sync**: Automatic synchronization of shared access across devices
 
 ### 🔐 Authentication
 - **Firebase Authentication**: Secure email/password authentication
 - **Google Sign-In**: One-tap Google authentication integration
 - **Session Management**: Persistent login sessions
+
+### 📊 Statistics & Analytics
+- **Completion Rates**: Track task completion statistics for each pet
+- **Activity History**: View recent activity and task completion history
+- **Category Analytics**: See completion rates by task category
+- **Pet Statistics**: Individual statistics for each pet
+
+### 🎨 User Experience
+- **Dark Theme**: Toggle between light and dark themes with night mode support
+- **Settings Screen**: Customize app preferences, notifications, and sync settings
+- **Search & Filter**: Quickly find pets and tasks with search functionality
+- **Smooth Animations**: Enhanced UI with fade, slide, and scale animations
+- **Material Design 3**: Modern, accessible UI components
+
+### 📤 Export & Sharing
+- **Export Functionality**: Export schedules and pet details to PDF or CSV format
+- **Vet Records**: Generate formatted reports for veterinarian visits
+- **Data Export**: Backup your pet data and schedules
+
+### 📱 Widget Support
+- **Home Screen Widget**: Quick access to upcoming tasks directly from home screen
+- **Task List Widget**: View your pet's scheduled tasks at a glance
 
 ## 🛠️ Technology Stack
 
@@ -78,6 +108,7 @@ Pet Scheduling is a full-featured mobile application designed to help pet owners
 - **Schedule Tasks Table**: Recurring task definitions
 - **Completed Tasks Table**: Task completion history
 - **Shared Access Table**: User permissions and sharing
+- **Emergency Contacts Table**: Veterinarian and emergency contact information
 
 ## 📁 Project Structure
 
@@ -87,17 +118,38 @@ app/src/main/java/com/hfad/pet_scheduling/
 │   ├── local/
 │   │   ├── AppDatabase.kt          # Room database configuration
 │   │   ├── dao/                     # Data Access Objects
-│   │   └── entities/                # Database entities
+│   │   └── entities/                # Database entities (Pet, Task, EmergencyContact)
+│   ├── remote/                      # Remote data sources
+│   │   └── FirestoreSyncService.kt  # Firebase Firestore sync
+│   ├── StatisticsData.kt           # Statistics data models
+│   ├── TaskTemplate.kt             # Task template models
 │   └── repository/                  # Repository pattern implementation
 ├── ui/
 │   ├── auth/                        # Authentication screens
 │   ├── pets/                        # Pet management screens
+│   ├── schedules/                   # Task scheduling screens
+│   ├── sharing/                     # Pet sharing and collaboration
+│   ├── settings/                    # Settings screen
+│   ├── statistics/                  # Statistics and analytics
 │   └── theme/                       # App theming
 ├── utils/                           # Utility classes
 │   ├── GeminiHelper.kt             # AI integration
 │   ├── NotificationHelper.kt       # Notification management
+│   ├── NotificationScheduler.kt    # Notification scheduling
+│   ├── NotificationRescheduler.kt  # Notification rescheduling
+│   ├── CloudSyncManager.kt         # Cloud sync management
+│   ├── ExportHelper.kt             # Data export functionality
+│   ├── FirebaseStorageHelper.kt   # Firebase storage operations
+│   ├── ImagePicker.kt              # Image selection and upload
+│   ├── StatisticsCalculator.kt    # Statistics calculations
 │   └── GoogleSignInHelper.kt       # Google Sign-In
 ├── viewmodels/                      # ViewModels for UI
+├── receivers/                       # Broadcast receivers
+│   └── NotificationActionReceiver.kt # Notification action handling
+├── workers/                         # Background workers
+│   └── ReminderWorker.kt           # WorkManager reminder worker
+├── widgets/                         # App widgets
+│   └── TaskWidgetProvider.kt       # Home screen widget
 └── MainActivity.kt                  # Main activity
 ```
 
@@ -113,7 +165,7 @@ app/src/main/java/com/hfad/pet_scheduling/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/Pet_Scheduling.git
+   git clone https://github.com/kdooley727/Pet_Scheduling.git
    cd Pet_Scheduling
    ```
 
@@ -139,9 +191,7 @@ app/src/main/java/com/hfad/pet_scheduling/
 
 ## 📸 Screenshots
 
-<img width="464" height="1009" alt="image" src="https://github.com/user-attachments/assets/c3e0775d-e616-4993-bf65-1647705cafd4" />
-<img width="579" height="965" alt="Screenshot 2025-11-05 094206" src="https://github.com/user-attachments/assets/c8c93b1b-63a4-45cd-b722-73fa1feafbc0" />
-
+_Add screenshots of your app here to showcase the UI/UX_
 
 ## 🎯 Key Technical Highlights
 
@@ -154,18 +204,37 @@ app/src/main/java/com/hfad/pet_scheduling/
 - **AI Integration**: Google Gemini for intelligent features
 - **WorkManager**: Reliable background task execution
 
+## 🆕 Recent Updates (Latest Release)
+
+### Version 1.1 Features
+- ✅ **Statistics Dashboard**: View completion rates, activity history, and analytics
+- ✅ **Enhanced Sharing**: Improved pet sharing with better permission management
+- ✅ **Settings Screen**: Comprehensive settings for notifications, theme, and sync preferences
+- ✅ **Home Screen Widget**: Quick access to upcoming tasks
+- ✅ **Dark Theme**: Full dark mode support with night theme
+- ✅ **Export Functionality**: Export pet data and schedules to PDF/CSV
+- ✅ **Emergency Contacts**: Store veterinarian and emergency contact information
+- ✅ **Task Templates**: Save and reuse common task configurations
+- ✅ **Cloud Sync Improvements**: Enhanced synchronization with better error handling
+- ✅ **Notification Enhancements**: Improved notification scheduling and rescheduling
+- ✅ **UI Improvements**: Smooth animations and better visual feedback
+- ✅ **Image Picker**: Enhanced pet photo upload and management
+
+### Bug Fixes
+- ✅ Fixed emergency contacts cloud sync
+- ✅ Improved pet deletion functionality
+- ✅ Enhanced UI button visibility in both themes
+- ✅ Better cloud synchronization reliability
+
 ## 🔮 Future Enhancements
 
-- [ ] Cloud sync across devices
-- [ ] Photo upload and storage
 - [ ] Calendar integration
-- [ ] Export schedules to PDF
-- [ ] Widget support for quick task viewing
-- [ ] Dark mode theme
 - [ ] Multi-language support
 - [ ] Pet health tracking
-- [ ] Vet appointment reminders
 - [ ] Medication dosage tracking
+- [ ] Advanced AI recommendations
+- [ ] Social features and pet community
+- [ ] Integration with pet wearables
 
 ## 📝 License
 
@@ -173,9 +242,8 @@ This project is open source and available for educational purposes.
 
 ## 👨‍💻 Author
 
-**Your Name**
+**kdooley727**
 - GitHub: [@kdooley727](https://github.com/kdooley727)
-- LinkedIn: [https://www.linkedin.com/in/kyle-dooley-database/]
 
 ---
 

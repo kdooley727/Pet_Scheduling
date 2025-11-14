@@ -123,6 +123,9 @@ object Constants {
 
     // Default Reminder Times (in minutes before task)
     object ReminderTimes {
+        const val MINUTES_1 = 1
+        const val MINUTES_2 = 2
+        const val MINUTES_3 = 3
         const val MINUTES_5 = 5
         const val MINUTES_15 = 15
         const val MINUTES_30 = 30
@@ -130,6 +133,9 @@ object Constants {
         const val MINUTES_120 = 120
 
         val ALL_TIMES = listOf(
+            MINUTES_1,
+            MINUTES_2,
+            MINUTES_3,
             MINUTES_5,
             MINUTES_15,
             MINUTES_30,
@@ -140,7 +146,7 @@ object Constants {
 
     // Database
     const val DATABASE_NAME = "pet_scheduling_database"
-    const val DATABASE_VERSION = 1
+    const val DATABASE_VERSION = 2
 
     // Notification Channels
     const val NOTIFICATION_CHANNEL_ID = "pet_scheduling_notifications"

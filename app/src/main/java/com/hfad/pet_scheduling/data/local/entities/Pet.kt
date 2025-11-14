@@ -15,6 +15,18 @@ data class Pet(
     val birthDate: Long?,
     val photoUrl: String?,
     val notes: String?,
+    
+    // Emergency contacts - stored as JSON strings
+    val vetName: String? = null,
+    val vetPhone: String? = null,
+    val vetEmail: String? = null,
+    val vetAddress: String? = null,
+    
+    val emergencyContactName: String? = null,
+    val emergencyContactPhone: String? = null,
+    val emergencyContactEmail: String? = null,
+    val emergencyContactRelationship: String? = null,
+    
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

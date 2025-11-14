@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme primary colors - Brighter blue/cyan for visibility -->
+    <color name="primary_200">#B3E5FC</color>
+    <color name="primary_500">#29B6F6</color>
+    <color name="primary_700">#0288D1</color>
+    
+    <!-- Legacy purple colors for compatibility -->
+    <color name="purple_200">#B3E5FC</color>
+    <color name="purple_500">#29B6F6</color>
+    <color name="purple_700">#0288D1</color>
+    
+    <!-- Accent colors -->
+    <color name="teal_200">#80DEEA</color>
+    <color name="teal_700">#4DD0E1</color>
+    
+    <!-- Base colors -->
+    <color name="black">#FFFFFFFF</color>
+    <color name="white">#FF121212</color>
+    <color name="google_blue">#64B5F6</color>
+    
+    <!-- Sync status colors - Brighter for dark theme -->
+    <color name="sync_idle">#B0BEC5</color>
+    <color name="sync_syncing">#29B6F6</color>
+    <color name="sync_success">#66BB6A</color>
+    <color name="sync_error">#EF5350</color>
+    
+    <!-- Dark theme specific colors -->
+    <color name="dark_background">#FF121212</color>
+    <color name="dark_surface">#FF1E1E1E</color>
+    <color name="dark_surface_variant">#FF2C2C2C</color>
+    <color name="dark_text_primary">#FFFFFFFF</color>
+    <color name="dark_text_secondary">#B3FFFFFF</color>
+    
+    <!-- Surface colors -->
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_dark">#121212</color>
+</resources>
+

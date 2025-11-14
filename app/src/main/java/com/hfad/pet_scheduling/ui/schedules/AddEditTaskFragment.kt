@@ -16,6 +16,7 @@ import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
 import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
 import com.hfad.pet_scheduling.databinding.FragmentAddEditTaskBinding
+import com.hfad.pet_scheduling.data.TaskTemplate
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.DateTimeUtils
 import com.hfad.pet_scheduling.viewmodels.ScheduleViewModel
@@ -60,7 +61,8 @@ class AddEditTaskFragment : Fragment() {
         val application = requireActivity().application as PetSchedulingApplication
         val factory = ViewModelFactory(
             application.petRepository,
-            application.scheduleRepository
+            application.scheduleRepository,
+            application
         )
         scheduleViewModel = ViewModelProvider(this, factory)[ScheduleViewModel::class.java]
 
@@ -70,12 +72,18 @@ class AddEditTaskFragment : Fragment() {
 
         if (isEditMode) {
             taskId?.let { scheduleViewModel.getTaskById(it) }
+            // Hide template button in edit mode
+            binding.btnUseTemplate.visibility = View.GONE
         } else {
+            // Show template button for new tasks
+            binding.btnUseTemplate.visibility = View.VISIBLE
             // Set default values for new task
             selectedDate = Calendar.getInstance()
             selectedTime = Calendar.getInstance()
             updateDateDisplay()
             updateTimeDisplay()
+            // Set default reminder to 15 minutes
+            binding.etReminderMinutes.setText(formatReminderTime(15), false)
         }
     }
 
@@ -85,7 +93,7 @@ class AddEditTaskFragment : Fragment() {
         // Setup category dropdown
         val categoryAdapter = ArrayAdapter(
             requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
+            R.layout.dropdown_item,
             Constants.TaskCategory.ALL_CATEGORIES.map { Constants.TaskCategory.getDisplayName(it) }
         )
         binding.etTaskCategory.setAdapter(categoryAdapter)
@@ -93,7 +101,7 @@ class AddEditTaskFragment : Fragment() {
         // Setup recurrence pattern dropdown
         val recurrenceAdapter = ArrayAdapter(
             requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
+            R.layout.dropdown_item,
             Constants.RecurrencePattern.ALL_PATTERNS.map { Constants.RecurrencePattern.getDisplayName(it) }
         )
         binding.etRecurrencePattern.setAdapter(recurrenceAdapter)
@@ -101,7 +109,7 @@ class AddEditTaskFragment : Fragment() {
         // Setup reminder minutes dropdown
         val reminderAdapter = ArrayAdapter(
             requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
+            R.layout.dropdown_item,
             Constants.ReminderTimes.ALL_TIMES.map { formatReminderTime(it) }
         )
         binding.etReminderMinutes.setAdapter(reminderAdapter)
@@ -131,6 +139,10 @@ class AddEditTaskFragment : Fragment() {
     private fun setupClickListeners() {
         binding.toolbar.setNavigationOnClickListener {
             findNavController().popBackStack()
+        }
+
+        binding.btnUseTemplate.setOnClickListener {
+            showTemplateDialog()
         }
 
         binding.etTaskDate.setOnClickListener {
@@ -229,7 +241,15 @@ class AddEditTaskFragment : Fragment() {
         } ?: Constants.RecurrencePattern.NONE
 
         val reminderText = binding.etReminderMinutes.text.toString().trim()
-        val reminderMinutes = parseReminderTime(reminderText)
+        val reminderMinutes = if (reminderText.isEmpty()) {
+            // Default to 15 minutes if not set
+            android.util.Log.d("AddEditTaskFragment", "⚠️ No reminder selected, defaulting to 15 minutes")
+            15
+        } else {
+            parseReminderTime(reminderText)
+        }
+        
+        android.util.Log.d("AddEditTaskFragment", "📝 Reminder text: '$reminderText', parsed to: $reminderMinutes minutes")
 
         // Combine date and time
         val combinedDateTime = Calendar.getInstance().apply {
@@ -240,6 +260,23 @@ class AddEditTaskFragment : Fragment() {
             set(Calendar.MINUTE, selectedTime.get(Calendar.MINUTE))
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
+        }
+        
+        val taskTime = combinedDateTime.timeInMillis
+        val currentTime = System.currentTimeMillis()
+        val reminderTime = taskTime - (reminderMinutes * 60 * 1000L)
+        
+        // Validate that reminder time is in the future
+        if (reminderTime <= currentTime) {
+            val reminderTimeStr = DateTimeUtils.formatDateTime(reminderTime)
+            val currentTimeStr = DateTimeUtils.formatDateTime(currentTime)
+            android.util.Log.w("AddEditTaskFragment", "⚠️ Reminder time ($reminderTimeStr) is in the past (current: $currentTimeStr)")
+            
+            Toast.makeText(
+                requireContext(),
+                "Warning: Reminder time is in the past. Task will be saved but no notification will be scheduled. Please set a future time.",
+                Toast.LENGTH_LONG
+            ).show()
         }
 
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -270,10 +307,14 @@ class AddEditTaskFragment : Fragment() {
             )
         }
 
+        android.util.Log.d("AddEditTaskFragment", "💾 Saving task: title='${task.title}', startTime=${DateTimeUtils.formatDateTime(task.startTime)}, reminder=${task.reminderMinutesBefore} min")
+        
         if (isEditMode) {
+            android.util.Log.d("AddEditTaskFragment", "✏️ Updating existing task")
             scheduleViewModel.updateTask(task)
             Toast.makeText(requireContext(), "Task updated successfully", Toast.LENGTH_SHORT).show()
         } else {
+            android.util.Log.d("AddEditTaskFragment", "➕ Creating new task")
             scheduleViewModel.saveTask(task)
             Toast.makeText(requireContext(), "Task saved successfully", Toast.LENGTH_SHORT).show()
         }
@@ -297,6 +338,52 @@ class AddEditTaskFragment : Fragment() {
                 text.toIntOrNull() ?: 15
             }
         }
+    }
+
+    private fun showTemplateDialog() {
+        val templates = TaskTemplate.getDefaultTemplates()
+        
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Select a Template")
+            .setItems(
+                templates.map { "${Constants.TaskCategory.getDisplayName(it.category)}: ${it.name}" }.toTypedArray()
+            ) { _, which ->
+                val selectedTemplate = templates[which]
+                applyTemplate(selectedTemplate)
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+        
+        dialog.show()
+    }
+
+    private fun applyTemplate(template: TaskTemplate) {
+        // Fill form with template data
+        binding.etTaskTitle.setText(template.name)
+        binding.etTaskDescription.setText(template.description ?: "")
+        
+        // Set category
+        val categoryDisplayName = Constants.TaskCategory.getDisplayName(template.category)
+        binding.etTaskCategory.setText(categoryDisplayName, false)
+        
+        // Set recurrence pattern
+        val recurrenceDisplayName = Constants.RecurrencePattern.getDisplayName(template.recurrencePattern)
+        binding.etRecurrencePattern.setText(recurrenceDisplayName, false)
+        
+        // Set reminder time
+        binding.etReminderMinutes.setText(formatReminderTime(template.reminderMinutesBefore), false)
+        
+        // Parse and set time from template
+        val (hour, minute) = template.defaultTime.split(":").map { it.toInt() }
+        selectedTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        updateTimeDisplay()
+        
+        Toast.makeText(requireContext(), "Template applied: ${template.name}", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

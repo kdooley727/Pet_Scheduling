@@ -7,9 +7,15 @@ import androidx.lifecycle.viewModelScope
 import com.hfad.pet_scheduling.data.local.entities.Pet
 import com.hfad.pet_scheduling.data.local.entities.SharedAccess
 import com.hfad.pet_scheduling.data.repository.PetRepository
+import com.hfad.pet_scheduling.data.remote.FirestoreSyncService
+import com.hfad.pet_scheduling.utils.CloudSyncManager
 import kotlinx.coroutines.launch
 
-class PetViewModel(private val petRepository: PetRepository) : ViewModel() {
+class PetViewModel(
+    private val petRepository: PetRepository,
+    private val cloudSyncManager: CloudSyncManager? = null,
+    private val scheduleRepository: com.hfad.pet_scheduling.data.repository.ScheduleRepository? = null
+) : ViewModel() {
     private val _pets = MutableLiveData<List<Pet>>()
     val pets: LiveData<List<Pet>> = _pets
 
@@ -42,13 +48,19 @@ class PetViewModel(private val petRepository: PetRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+                _errorMessage.value = null
+                android.util.Log.d("PetViewModel", "Loading pets for userId: $userId")
+                
                 petRepository.getAllPetsByUser(userId).collect { petList ->
+                    android.util.Log.d("PetViewModel", "Received ${petList.size} pets")
                     _pets.value = petList
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error loading pets: ${e.message}"
+                android.util.Log.e("PetViewModel", "Error loading pets", e)
+                _errorMessage.value = "Error loading pets: ${e.message ?: e.javaClass.simpleName}"
                 _isLoading.value = false
+                _pets.value = emptyList() // Set empty list on error
             }
         }
     }
@@ -88,6 +100,10 @@ class PetViewModel(private val petRepository: PetRepository) : ViewModel() {
                     petRepository.updatePet(pet)
                     android.util.Log.d("PetViewModel", "Pet updated successfully")
                 }
+                
+                // Sync to cloud
+                cloudSyncManager?.syncToCloud()
+                
                 _isLoading.value = false
             } catch (e: Exception) {
                 android.util.Log.e("PetViewModel", "Error saving pet", e)
@@ -104,9 +120,50 @@ class PetViewModel(private val petRepository: PetRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+                android.util.Log.d("PetViewModel", "Deleting pet: ${pet.name} (${pet.petId})")
+                
+                // Delete from cloud first (before local deletion)
+                val syncService = FirestoreSyncService()
+                syncService.deletePetFromCloud(pet.petId).fold(
+                    onSuccess = {
+                        android.util.Log.d("PetViewModel", "✅ Pet deleted from Firestore")
+                    },
+                    onFailure = { e ->
+                        android.util.Log.e("PetViewModel", "❌ Failed to delete pet from Firestore", e)
+                        // Continue with local deletion even if cloud deletion fails
+                    }
+                )
+                
+                // Delete associated tasks from cloud and local database
+                scheduleRepository?.let { repo ->
+                    try {
+                        val tasks = repo.getAllActiveTasks()
+                        tasks.filter { it.petId == pet.petId }.forEach { task ->
+                            // Delete task from cloud
+                            syncService.deleteTaskFromCloud(task.taskId).fold(
+                                onSuccess = {
+                                    android.util.Log.d("PetViewModel", "✅ Task deleted from Firestore: ${task.title}")
+                                },
+                                onFailure = { e ->
+                                    android.util.Log.e("PetViewModel", "❌ Failed to delete task from Firestore", e)
+                                }
+                            )
+                            // Delete task from local database
+                            repo.deleteTask(task)
+                            android.util.Log.d("PetViewModel", "✅ Deleted associated task: ${task.title}")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("PetViewModel", "Error deleting associated tasks", e)
+                    }
+                }
+                
+                // Delete from local database
                 petRepository.deletePet(pet)
+                android.util.Log.d("PetViewModel", "✅ Pet deleted from local database")
+                
                 _isLoading.value = false
             } catch (e: Exception) {
+                android.util.Log.e("PetViewModel", "Error deleting pet", e)
                 _errorMessage.value = "Error deleting pet: ${e.message}"
                 _isLoading.value = false
             }
