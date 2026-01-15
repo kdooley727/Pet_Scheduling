@@ -1,8 +1,12 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
+    id("com.android.library") version "9.0.0" apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.sqldelight) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
     id("com.google.gms.google-services") version "4.4.3" apply false
-    id("com.google.devtools.ksp") version "1.9.22-1.0.17" apply false
+    id("com.google.devtools.ksp") version "2.3.2" apply false
 }

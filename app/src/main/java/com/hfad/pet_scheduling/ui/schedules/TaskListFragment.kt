@@ -6,10 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
 import com.hfad.pet_scheduling.databinding.FragmentTaskListBinding
@@ -17,14 +21,18 @@ import com.hfad.pet_scheduling.viewmodels.ScheduleViewModel
 import com.hfad.pet_scheduling.viewmodels.ViewModelFactory
 import com.hfad.pet_scheduling.viewmodels.PetViewModel
 import com.hfad.pet_scheduling.utils.GeminiHelper
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.utils.FreeAIHelper
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
+import com.hfad.pet_scheduling.utils.ExportHelper
+import com.hfad.pet_scheduling.utils.Constants
+import com.hfad.pet_scheduling.utils.DateTimeUtils
+import com.hfad.pet_scheduling.utils.QuotaExceededException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONObject
 
 class TaskListFragment : Fragment() {
     private var _binding: FragmentTaskListBinding? = null
@@ -34,10 +42,11 @@ class TaskListFragment : Fragment() {
     private lateinit var petViewModel: PetViewModel
     private lateinit var taskAdapter: TaskAdapter
     private var petId: String? = null
-    private var allTasks: List<com.hfad.pet_scheduling.data.local.entities.ScheduleTask> = emptyList()
+    private var allTasks: List<ScheduleTask> = emptyList()
     private var currentFilter: String = "all" // "all", "today", "week"
     private var selectedCategory: String? = null
     private var searchQuery: String = ""
+    private var completedTaskIdsToday: Set<String> = emptySet()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -106,19 +115,53 @@ class TaskListFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        scheduleViewModel.tasks.observe(viewLifecycleOwner) { tasks ->
-            allTasks = tasks
-            applyFilters()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.tasks.collect { tasks ->
+                    allTasks = tasks
+                    applyFilters()
+
+                    val taskIds = tasks.map { it.taskId }
+                    if (taskIds.isNotEmpty()) {
+                        val now = System.currentTimeMillis()
+                        scheduleViewModel.loadCompletedTasksInDateRange(
+                            taskIds,
+                            DateTimeUtils.getStartOfDay(now),
+                            DateTimeUtils.getEndOfDay(now)
+                        )
+                    } else {
+                        completedTaskIdsToday = emptySet()
+                        taskAdapter.setCompletedTaskIds(completedTaskIdsToday)
+                    }
+                }
+            }
         }
 
-        scheduleViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.isLoading.collect { isLoading ->
+                    binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                }
+            }
         }
 
-        scheduleViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                scheduleViewModel.clearError()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.completedTasks.collect { completed ->
+                    completedTaskIdsToday = completed.map { it.taskId }.toSet()
+                    taskAdapter.setCompletedTaskIds(completedTaskIdsToday)
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.errorMessage.collect { error ->
+                    error?.let {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                        scheduleViewModel.clearError()
+                    }
+                }
             }
         }
     }
@@ -136,7 +179,7 @@ class TaskListFragment : Fragment() {
         }
 
         binding.fabAISuggestions.setOnClickListener {
-            generateAISuggestions()
+            showTemplateScheduleDialog()
         }
 
         binding.fabExport.setOnClickListener {
@@ -147,7 +190,7 @@ class TaskListFragment : Fragment() {
     private fun showExportDialog() {
         val options = arrayOf("Export as HTML (for PDF)", "Export as CSV")
         
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle("Export Pet Schedule")
             .setItems(options) { _, which ->
                 when (which) {
@@ -159,21 +202,35 @@ class TaskListFragment : Fragment() {
             .show()
     }
 
+    private fun showTemplateScheduleDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Create template schedule?")
+            .setMessage(
+                "This will generate a starter schedule for this pet. " +
+                    "You can edit or delete tasks afterward."
+            )
+            .setPositiveButton("Create") { _, _ ->
+                generateAISuggestions()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun exportToHTML() {
-        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser == null) {
             Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
             return
         }
 
         petId?.let { id ->
-            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 try {
                     binding.progressBar.visibility = View.VISIBLE
                     val application = requireActivity().application as PetSchedulingApplication
                     
                     // Get pet data
-                    val pet = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val pet = withContext(Dispatchers.IO) {
                         application.petRepository.getPetByIdSuspend(id)
                     }
                     
@@ -185,12 +242,12 @@ class TaskListFragment : Fragment() {
 
                     // Get all tasks (including inactive) for completed task details
                     val allTasksFlow = application.scheduleRepository.getActiveTasksByPet(id)
-                    val activeTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val activeTasks = withContext(Dispatchers.IO) {
                         allTasksFlow.first()
                     }
 
                     // Get completed tasks
-                    val completedTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val completedTasks = withContext(Dispatchers.IO) {
                         application.scheduleRepository.getCompletedTasksByPet(id)
                     }
                     
@@ -209,7 +266,7 @@ class TaskListFragment : Fragment() {
                     val allTasksForExport: List<ScheduleTask> = allTasksMap.values.toList()
 
                     // Export
-                    val exportHelper = com.hfad.pet_scheduling.utils.ExportHelper(requireContext())
+                    val exportHelper = ExportHelper(requireContext())
                     val uri = exportHelper.exportToHTML(pet, allTasksForExport, completedTasks)
                     
                     if (uri != null) {
@@ -229,20 +286,20 @@ class TaskListFragment : Fragment() {
     }
 
     private fun exportToCSV() {
-        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser == null) {
             Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
             return
         }
 
         petId?.let { id ->
-            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 try {
                     binding.progressBar.visibility = View.VISIBLE
                     val application = requireActivity().application as PetSchedulingApplication
                     
                     // Get pet data
-                    val pet = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val pet = withContext(Dispatchers.IO) {
                         application.petRepository.getPetByIdSuspend(id)
                     }
                     
@@ -254,12 +311,12 @@ class TaskListFragment : Fragment() {
 
                     // Get all tasks (including inactive) for completed task details
                     val allTasksFlow = application.scheduleRepository.getActiveTasksByPet(id)
-                    val activeTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val activeTasks = withContext(Dispatchers.IO) {
                         allTasksFlow.first()
                     }
 
                     // Get completed tasks
-                    val completedTasks = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val completedTasks = withContext(Dispatchers.IO) {
                         application.scheduleRepository.getCompletedTasksByPet(id)
                     }
                     
@@ -278,7 +335,7 @@ class TaskListFragment : Fragment() {
                     val allTasksForExport = allTasksMap.values.toList()
 
                     // Export
-                    val exportHelper = com.hfad.pet_scheduling.utils.ExportHelper(requireContext())
+                    val exportHelper = ExportHelper(requireContext())
                     val uri = exportHelper.exportToCSV(pet, allTasksForExport, completedTasks)
                     
                     if (uri != null) {
@@ -321,7 +378,7 @@ class TaskListFragment : Fragment() {
         })
 
         // Clear search when clear icon is clicked
-        binding.tilSearch.setEndIconOnClickListener { view ->
+        binding.tilSearch.setEndIconOnClickListener {
             binding.etSearch.setText("")
             searchQuery = ""
             applyFilters()
@@ -333,17 +390,17 @@ class TaskListFragment : Fragment() {
         val categoryAdapter = android.widget.ArrayAdapter(
             requireContext(),
             android.R.layout.simple_dropdown_item_1line,
-            listOf("All Categories") + com.hfad.pet_scheduling.utils.Constants.TaskCategory.ALL_CATEGORIES.map {
-                com.hfad.pet_scheduling.utils.Constants.TaskCategory.getDisplayName(it)
+            listOf("All Categories") + Constants.TaskCategory.ALL_CATEGORIES.map {
+                Constants.TaskCategory.getDisplayName(it)
             }
         )
         binding.etCategoryFilter.setAdapter(categoryAdapter)
         binding.etCategoryFilter.setText("All Categories", false)
         binding.etCategoryFilter.setOnItemClickListener { _, _, position, _ ->
-            if (position == 0) {
-                selectedCategory = null
+            selectedCategory = if (position == 0) {
+                null
             } else {
-                selectedCategory = com.hfad.pet_scheduling.utils.Constants.TaskCategory.ALL_CATEGORIES[position - 1]
+                Constants.TaskCategory.ALL_CATEGORIES[position - 1]
             }
             applyFilters()
         }
@@ -393,13 +450,13 @@ class TaskListFragment : Fragment() {
         val now = System.currentTimeMillis()
         filteredTasks = when (currentFilter) {
             "today" -> {
-                val startOfDay = com.hfad.pet_scheduling.utils.DateTimeUtils.getStartOfDay(now)
-                val endOfDay = com.hfad.pet_scheduling.utils.DateTimeUtils.getEndOfDay(now)
+                val startOfDay = DateTimeUtils.getStartOfDay(now)
+                val endOfDay = DateTimeUtils.getEndOfDay(now)
                 filteredTasks.filter { it.startTime in startOfDay..endOfDay }
             }
             "week" -> {
-                val startOfWeek = com.hfad.pet_scheduling.utils.DateTimeUtils.getStartOfWeek(now)
-                val endOfWeek = com.hfad.pet_scheduling.utils.DateTimeUtils.getEndOfWeek(now)
+                val startOfWeek = DateTimeUtils.getStartOfWeek(now)
+                val endOfWeek = DateTimeUtils.getEndOfWeek(now)
                 filteredTasks.filter { it.startTime in startOfWeek..endOfWeek }
             }
             else -> filteredTasks
@@ -416,7 +473,7 @@ class TaskListFragment : Fragment() {
         }
     }
 
-    private fun markTaskComplete(task: com.hfad.pet_scheduling.data.local.entities.ScheduleTask) {
+    private fun markTaskComplete(task: ScheduleTask) {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser == null) {
             Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show()
@@ -442,81 +499,130 @@ class TaskListFragment : Fragment() {
         // Get pet information
         petId?.let { id ->
             CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.visibility = View.VISIBLE
+                val application = requireActivity().application as PetSchedulingApplication
+                
+                // Get pet outside try block so it's accessible in catch blocks
+                val pet = withContext(Dispatchers.IO) {
+                    application.petRepository.getPetByIdSuspend(id)
+                }
+
+                if (pet == null) {
+                    Toast.makeText(requireContext(), "Pet not found", Toast.LENGTH_SHORT).show()
+                    binding.progressBar.visibility = View.GONE
+                    return@launch
+                }
+
                 try {
-                    binding.progressBar.visibility = View.VISIBLE
-                    val application = requireActivity().application as PetSchedulingApplication
-                    val pet = withContext(Dispatchers.IO) {
-                        application.petRepository.getPetByIdSuspend(id)
-                    }
 
-                    if (pet == null) {
-                        Toast.makeText(requireContext(), "Pet not found", Toast.LENGTH_SHORT).show()
-                        binding.progressBar.visibility = View.GONE
-                        return@launch
-                    }
-
-                    // Get Gemini API key from BuildConfig
-                    val apiKey = com.hfad.pet_scheduling.BuildConfig.GEMINI_API_KEY
-                    
-                    if (apiKey.isEmpty()) {
-                        Toast.makeText(requireContext(), "Gemini API key not configured. Please add GEMINI_API_KEY to local.properties", Toast.LENGTH_LONG).show()
-                        binding.progressBar.visibility = View.GONE
-                        return@launch
-                    }
-
-                    val geminiHelper = GeminiHelper(apiKey)
-                    
                     // Calculate pet age if birth date is available
                     val petAge = pet.birthDate?.let {
                         val ageInDays = (System.currentTimeMillis() - it) / (1000 * 60 * 60 * 24)
                         when {
-                            ageInDays < 30 -> "${ageInDays} days"
+                            ageInDays < 30 -> "$ageInDays days"
                             ageInDays < 365 -> "${ageInDays / 30} months"
                             else -> "${ageInDays / 365} years"
                         }
                     }
 
-                    val suggestions = withContext(Dispatchers.IO) {
+                    // Try free AI first (no API key required)
+                    var suggestions: String?
+                    val freeAIHelper = FreeAIHelper()
+                    
+                    android.util.Log.d("TaskListFragment", "Trying free AI first...")
+                    suggestions = withContext(Dispatchers.IO) {
                         try {
-                            geminiHelper.generatePetSchedule(
+                            freeAIHelper.generatePetSchedule(
                                 petName = pet.name,
                                 petType = pet.type,
                                 petBreed = pet.breed,
                                 petAge = petAge
                             )
                         } catch (e: Exception) {
-                            android.util.Log.e("TaskListFragment", "Error generating suggestions", e)
-                            throw e
+                            android.util.Log.e("TaskListFragment", "Error with free AI", e)
+                            null
+                        }
+                    }
+                    
+                    // If free AI failed, try Gemini as fallback (if API key is configured)
+                    if (suggestions.isNullOrEmpty()) {
+                        val apiKey = com.hfad.pet_scheduling.BuildConfig.GEMINI_API_KEY
+                        if (apiKey.isNotEmpty()) {
+                            android.util.Log.d("TaskListFragment", "Free AI failed, trying Gemini...")
+                            val geminiHelper = GeminiHelper(apiKey)
+                            suggestions = withContext(Dispatchers.IO) {
+                                try {
+                                    geminiHelper.generatePetSchedule(
+                                        petName = pet.name,
+                                        petType = pet.type,
+                                        petBreed = pet.breed,
+                                        petAge = petAge
+                                    )
+                                } catch (e: Exception) {
+                                    android.util.Log.e("TaskListFragment", "Error generating suggestions with Gemini", e)
+                                    null
+                                }
+                            }
                         }
                     }
 
                     if (suggestions != null && suggestions.isNotEmpty()) {
                         parseAndCreateTasks(suggestions, currentUser.uid)
-                        Toast.makeText(requireContext(), "AI suggestions added!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "AI suggestions added! (Free AI)", Toast.LENGTH_SHORT).show()
                     } else {
                         android.util.Log.w("TaskListFragment", "Suggestions is null or empty")
                         Toast.makeText(
                             requireContext(), 
-                            "Failed to generate suggestions. You may have exceeded your free tier quota. Please try again later or check your API usage.",
+                            "Failed to generate suggestions. The AI service may be temporarily unavailable. Please try again in a few moments.",
                             Toast.LENGTH_LONG
                         ).show()
                     }
-                } catch (e: com.hfad.pet_scheduling.utils.QuotaExceededException) {
-                    android.util.Log.w("TaskListFragment", "Quota exceeded", e)
-                    Toast.makeText(
-                        requireContext(),
-                        "Free tier quota exceeded. Your API key works, but you've reached the free tier limit. Please wait 15 seconds and try again, or set up billing in Google AI Studio for higher limits.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                } catch (e: QuotaExceededException) {
+                    android.util.Log.w("TaskListFragment", "Quota exceeded, trying free AI fallback", e)
+                    // Try free AI as fallback when Gemini quota is exceeded
+                    try {
+                        val freeAIHelper = FreeAIHelper()
+                        val petAge = pet.birthDate?.let {
+                            val ageInDays = (System.currentTimeMillis() - it) / (1000 * 60 * 60 * 24)
+                            when {
+                                ageInDays < 30 -> "$ageInDays days"
+                                ageInDays < 365 -> "${ageInDays / 30} months"
+                                else -> "${ageInDays / 365} years"
+                            }
+                        }
+                        val suggestions = withContext(Dispatchers.IO) {
+                            freeAIHelper.generatePetSchedule(
+                                petName = pet.name,
+                                petType = pet.type,
+                                petBreed = pet.breed,
+                                petAge = petAge
+                            )
+                        }
+                        if (suggestions != null && suggestions.isNotEmpty()) {
+                            parseAndCreateTasks(suggestions, currentUser.uid)
+                            Toast.makeText(requireContext(), "AI suggestions added! (Using free AI)", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "Gemini quota exceeded. Free AI is also unavailable. Please try again later.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    } catch (e2: Exception) {
+                        android.util.Log.e("TaskListFragment", "Free AI fallback also failed", e2)
+                        Toast.makeText(
+                            requireContext(),
+                            "Both AI services are unavailable. Please try again later.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 } catch (e: Exception) {
                     android.util.Log.e("TaskListFragment", "Error in generateAISuggestions", e)
-                    val errorMessage = when {
-                        e.message?.contains("API key") == true -> "Invalid API key. Check local.properties"
-                        e.message?.contains("network") == true || e.message?.contains("timeout") == true -> "Network error. Check your internet connection."
-                        e.message?.contains("quota") == true || e.message?.contains("429") == true -> "API quota exceeded. Please wait a few minutes and try again, or set up billing in Google Cloud Console."
-                        else -> "Error: ${e.message ?: "Unknown error"}"
-                    }
-                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        requireContext(), 
+                        "Error generating suggestions. Please try again in a few moments.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 } finally {
                     binding.progressBar.visibility = View.GONE
                 }
@@ -542,15 +648,15 @@ class TaskListFragment : Fragment() {
             
             // Try to parse JSON array
             val jsonArray = JSONArray(cleanedJson)
-            val tasksToCreate = mutableListOf<com.hfad.pet_scheduling.data.local.entities.ScheduleTask>()
+            val tasksToCreate = mutableListOf<ScheduleTask>()
 
             for (i in 0 until jsonArray.length()) {
                 val taskJson = jsonArray.getJSONObject(i)
                 val title = taskJson.getString("title")
                 val description = taskJson.optString("description").takeIf { it.isNotEmpty() }
-                val category = taskJson.optString("category", com.hfad.pet_scheduling.utils.Constants.TaskCategory.OTHER)
+                val category = taskJson.optString("category", Constants.TaskCategory.OTHER)
                 val suggestedTime = taskJson.optString("suggestedTime", "08:00")
-                val recurrencePattern = taskJson.optString("recurrencePattern", com.hfad.pet_scheduling.utils.Constants.RecurrencePattern.DAILY)
+                val recurrencePattern = taskJson.optString("recurrencePattern", Constants.RecurrencePattern.DAILY)
 
                 // Parse time (HH:mm format)
                 val (hour, minute) = suggestedTime.split(":").map { it.toInt() }
@@ -561,14 +667,14 @@ class TaskListFragment : Fragment() {
                     set(java.util.Calendar.MILLISECOND, 0)
                 }
 
-                val task = com.hfad.pet_scheduling.data.local.entities.ScheduleTask(
+                val task = ScheduleTask(
                     petId = petId!!,
                     title = title,
                     description = description,
                     category = category,
                     startTime = calendar.timeInMillis,
                     recurrencePattern = recurrencePattern,
-                    reminderMinutesBefore = com.hfad.pet_scheduling.utils.Constants.ReminderTimes.MINUTES_15,
+                    reminderMinutesBefore = Constants.ReminderTimes.MINUTES_15,
                     createdByUserId = userId
                 )
                 tasksToCreate.add(task)

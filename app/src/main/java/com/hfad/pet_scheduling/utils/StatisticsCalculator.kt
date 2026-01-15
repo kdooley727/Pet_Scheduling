@@ -3,8 +3,8 @@ package com.hfad.pet_scheduling.utils
 import com.hfad.pet_scheduling.data.CompletionEntry
 import com.hfad.pet_scheduling.data.PetStatistics
 import com.hfad.pet_scheduling.data.TaskStatistics
-import com.hfad.pet_scheduling.data.local.entities.CompletedTask
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.CompletedTask
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import java.util.*
 
 /**

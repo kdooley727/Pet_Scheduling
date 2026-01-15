@@ -2,7 +2,7 @@ package com.hfad.pet_scheduling.utils
 
 import android.content.Context
 import androidx.work.*
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.workers.ReminderWorker
 import java.util.concurrent.TimeUnit
 

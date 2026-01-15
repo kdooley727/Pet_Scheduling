@@ -1,0 +1,36 @@
+import kotlin.collections.List;
+
+getAllPetsByUser:
+SELECT * FROM pets
+WHERE userId = ?
+ORDER BY name ASC;
+
+getPetById:
+SELECT * FROM pets
+WHERE petId = ?;
+
+insertPet:
+INSERT OR REPLACE INTO pets (
+    petId, userId, name, type, breed, birthDate, photoUrl, notes,
+    vetName, vetPhone, vetEmail, vetAddress,
+    emergencyContactName, emergencyContactPhone, emergencyContactEmail, emergencyContactRelationship,
+    createdAt, updatedAt
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updatePet:
+UPDATE pets
+SET userId = ?, name = ?, type = ?, breed = ?, birthDate = ?, photoUrl = ?, notes = ?,
+    vetName = ?, vetPhone = ?, vetEmail = ?, vetAddress = ?,
+    emergencyContactName = ?, emergencyContactPhone = ?, emergencyContactEmail = ?, emergencyContactRelationship = ?,
+    updatedAt = ?
+WHERE petId = ?;
+
+deletePet:
+DELETE FROM pets
+WHERE petId = ?;
+
+searchPets:
+SELECT * FROM pets
+WHERE userId = ? AND name LIKE ? || '%'
+ORDER BY name ASC;
+

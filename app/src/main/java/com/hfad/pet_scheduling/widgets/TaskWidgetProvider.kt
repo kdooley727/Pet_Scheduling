@@ -8,7 +8,8 @@ import android.widget.RemoteViews
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.Pet
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.utils.DateTimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -138,7 +139,7 @@ class TaskWidgetProvider : AppWidgetProvider() {
         context: Context,
         views: RemoteViews,
         tasks: List<ScheduleTask>,
-        pets: List<com.hfad.pet_scheduling.data.local.entities.Pet>
+        pets: List<Pet>
     ) {
         val petMap = pets.associateBy { it.petId }
         

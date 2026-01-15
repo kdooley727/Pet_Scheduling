@@ -1,0 +1,57 @@
+import kotlin.collections.List;
+
+getActiveTasksByPet:
+SELECT * FROM schedule_tasks
+WHERE petId = ? AND isActive = 1
+ORDER BY startTime ASC;
+
+getActiveTasksByPets:
+SELECT * FROM schedule_tasks
+WHERE petId IN ? AND isActive = 1
+ORDER BY startTime ASC;
+
+getAllActiveTasks:
+SELECT * FROM schedule_tasks
+WHERE isActive = 1
+ORDER BY startTime ASC;
+
+getTaskById:
+SELECT * FROM schedule_tasks
+WHERE taskId = ?;
+
+getTasksInDateRange:
+SELECT * FROM schedule_tasks
+WHERE petId IN ? AND isActive = 1
+AND startTime BETWEEN ? AND ?
+ORDER BY startTime ASC;
+
+getUpcomingTasks:
+SELECT * FROM schedule_tasks
+WHERE petId IN ? AND isActive = 1
+AND startTime >= ?
+ORDER BY startTime ASC
+LIMIT ?;
+
+insertTask:
+INSERT OR REPLACE INTO schedule_tasks (
+    taskId, petId, title, description, category, startTime,
+    recurrencePattern, recurrenceInterval, reminderMinutesBefore,
+    isActive, createdAt, createdByUserId
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateTask:
+UPDATE schedule_tasks
+SET petId = ?, title = ?, description = ?, category = ?, startTime = ?,
+    recurrencePattern = ?, recurrenceInterval = ?, reminderMinutesBefore = ?,
+    isActive = ?, createdByUserId = ?
+WHERE taskId = ?;
+
+deleteTask:
+DELETE FROM schedule_tasks
+WHERE taskId = ?;
+
+setTaskActiveStatus:
+UPDATE schedule_tasks
+SET isActive = ?
+WHERE taskId = ?;
+

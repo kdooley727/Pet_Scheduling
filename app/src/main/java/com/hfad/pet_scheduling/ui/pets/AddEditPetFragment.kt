@@ -9,13 +9,16 @@ import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
-import com.hfad.pet_scheduling.data.local.entities.Pet
+import com.hfad.pet_scheduling.data.entities.Pet
 import com.hfad.pet_scheduling.databinding.FragmentAddEditPetBinding
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.DateTimeUtils
@@ -87,61 +90,74 @@ class AddEditPetFragment : Fragment() {
     private var isDeleting = false
     
     private fun setupObservers() {
-        petViewModel.selectedPet.observe(viewLifecycleOwner) { pet ->
-            pet?.let {
-                populateFields(it)
-                // Ensure delete button is visible when pet is loaded in edit mode
-                if (isEditMode) {
-                    binding.btnDelete.visibility = View.VISIBLE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.selectedPet.collect { pet ->
+                    pet?.let {
+                        populateFields(it)
+                        // Ensure delete button is visible when pet is loaded in edit mode
+                        if (isEditMode) {
+                            binding.btnDelete.visibility = View.VISIBLE
+                        }
+                    }
                 }
             }
         }
 
-        petViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.btnSave.isEnabled = !isLoading
-            binding.btnDelete.isEnabled = !isLoading
-            
-            // If we were saving and loading just finished, check if save was successful
-            if (isSaving && !isLoading && isAdded) {
-                isSaving = false
-                val error = petViewModel.errorMessage.value
-                if (error == null) {
-                    // Save successful
-                    try {
-                        Toast.makeText(requireContext(), "Pet saved successfully", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack()
-                    } catch (e: Exception) {
-                        android.util.Log.e("AddEditPetFragment", "Error navigating after save", e)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.isLoading.collect { isLoading ->
+                    binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                    binding.btnSave.isEnabled = !isLoading
+                    binding.btnDelete.isEnabled = !isLoading
+                    
+                    // If we were deleting and loading just finished, check if deletion was successful
+                    if (isDeleting && !isLoading && isAdded) {
+                        isDeleting = false
+                        val error = petViewModel.errorMessage.value
+                        if (error == null) {
+                            // Deletion successful
+                            android.util.Log.d("AddEditPetFragment", "Pet deleted successfully, navigating back")
+                            try {
+                                Toast.makeText(requireContext(), "Pet deleted successfully", Toast.LENGTH_SHORT).show()
+                                findNavController().popBackStack()
+                            } catch (e: Exception) {
+                                android.util.Log.e("AddEditPetFragment", "Error navigating after delete", e)
+                            }
+                        } else {
+                            android.util.Log.e("AddEditPetFragment", "Error deleting pet: $error")
+                            Toast.makeText(requireContext(), "Error deleting pet: $error", Toast.LENGTH_LONG).show()
+                        }
                     }
-                }
-            }
-            
-            // If we were deleting and loading just finished, check if deletion was successful
-            if (isDeleting && !isLoading && isAdded) {
-                isDeleting = false
-                val error = petViewModel.errorMessage.value
-                if (error == null) {
-                    // Deletion successful
-                    android.util.Log.d("AddEditPetFragment", "Pet deleted successfully, navigating back")
-                    try {
-                        Toast.makeText(requireContext(), "Pet deleted successfully", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack()
-                    } catch (e: Exception) {
-                        android.util.Log.e("AddEditPetFragment", "Error navigating after delete", e)
-                    }
-                } else {
-                    android.util.Log.e("AddEditPetFragment", "Error deleting pet: $error")
-                    Toast.makeText(requireContext(), "Error deleting pet: $error", Toast.LENGTH_LONG).show()
                 }
             }
         }
 
-        petViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                petViewModel.clearError()
-                isSaving = false // Reset saving flag on error
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.saveResult.collect { saveResult ->
+                    if (isSaving && saveResult == true && isAdded) {
+                        isSaving = false
+                        try {
+                            Toast.makeText(requireContext(), "Pet saved successfully", Toast.LENGTH_SHORT).show()
+                            findNavController().popBackStack()
+                        } catch (e: Exception) {
+                            android.util.Log.e("AddEditPetFragment", "Error navigating after save", e)
+                        }
+                    }
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.errorMessage.collect { error ->
+                    error?.let {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                        petViewModel.clearError()
+                        isSaving = false // Reset saving flag on error
+                    }
+                }
             }
         }
     }

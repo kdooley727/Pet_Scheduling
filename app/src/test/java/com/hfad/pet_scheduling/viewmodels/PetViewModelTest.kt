@@ -1,13 +1,10 @@
 package com.hfad.pet_scheduling.viewmodels
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
-import com.hfad.pet_scheduling.data.local.entities.Pet
+import com.hfad.pet_scheduling.data.entities.Pet
 import com.hfad.pet_scheduling.data.repository.PetRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -21,9 +18,6 @@ import java.util.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PetViewModelTest {
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-    
     private val testDispatcher = StandardTestDispatcher()
     
     private lateinit var mockRepository: PetRepository
@@ -67,9 +61,6 @@ class PetViewModelTest {
         )
         whenever(mockRepository.getAllPetsByUser(userId)).thenReturn(flowOf(pets))
         
-        val observer = Observer<List<Pet>> {}
-        viewModel.pets.observeForever(observer)
-        
         // When
         viewModel.initialize(userId)
         
@@ -80,7 +71,6 @@ class PetViewModelTest {
         verify(mockRepository).getAllPetsByUser(userId)
         assertEquals(pets, viewModel.pets.value)
         
-        viewModel.pets.removeObserver(observer)
     }
     
     @Test
@@ -156,9 +146,6 @@ class PetViewModelTest {
         )
         whenever(mockRepository.getPetById(petId)).thenReturn(flowOf(pet))
         
-        val observer = Observer<Pet?> {}
-        viewModel.selectedPet.observeForever(observer)
-        
         // When
         viewModel.getPetById(petId)
         
@@ -169,7 +156,6 @@ class PetViewModelTest {
         verify(mockRepository).getPetById(petId)
         assertEquals(pet, viewModel.selectedPet.value)
         
-        viewModel.selectedPet.removeObserver(observer)
     }
 }
 

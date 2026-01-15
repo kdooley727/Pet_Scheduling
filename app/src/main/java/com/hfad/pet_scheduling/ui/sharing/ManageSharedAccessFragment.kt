@@ -15,6 +15,8 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
+import com.hfad.pet_scheduling.data.entities.Pet
+import com.hfad.pet_scheduling.data.entities.SharedAccess
 import com.hfad.pet_scheduling.databinding.FragmentManageSharedAccessBinding
 import com.hfad.pet_scheduling.utils.Constants
 import kotlinx.coroutines.flow.first
@@ -153,7 +155,7 @@ class SharedAccessListFragment : Fragment() {
         }
     }
 
-    private fun showActionMenu(sharedAccess: com.hfad.pet_scheduling.data.local.entities.SharedAccess, petName: String) {
+    private fun showActionMenu(sharedAccess: SharedAccess, petName: String) {
         val popup = PopupMenu(requireContext(), binding.recyclerView)
         popup.menuInflater.inflate(R.menu.shared_access_menu, popup.menu)
 
@@ -179,7 +181,7 @@ class SharedAccessListFragment : Fragment() {
         popup.show()
     }
 
-    private fun revokeAccess(sharedAccess: com.hfad.pet_scheduling.data.local.entities.SharedAccess, petName: String) {
+    private fun revokeAccess(sharedAccess: SharedAccess, petName: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val application = requireActivity().application as PetSchedulingApplication
@@ -201,22 +203,22 @@ class SharedAccessListFragment : Fragment() {
 
 class SharedAccessAdapter(
     private val isSharedWithMe: Boolean,
-    private val onActionClick: (com.hfad.pet_scheduling.data.local.entities.SharedAccess, String) -> Unit
-) : androidx.recyclerview.widget.ListAdapter<Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>, SharedAccessAdapter.ViewHolder>(
+    private val onActionClick: (SharedAccess, String) -> Unit
+) : androidx.recyclerview.widget.ListAdapter<Pair<SharedAccess, Pet>, SharedAccessAdapter.ViewHolder>(
     SharedAccessDiffCallback()
 ) {
     
-    class SharedAccessDiffCallback : androidx.recyclerview.widget.DiffUtil.ItemCallback<Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>>() {
+    class SharedAccessDiffCallback : androidx.recyclerview.widget.DiffUtil.ItemCallback<Pair<SharedAccess, Pet>>() {
         override fun areItemsTheSame(
-            oldItem: Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>,
-            newItem: Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>
+            oldItem: Pair<SharedAccess, Pet>,
+            newItem: Pair<SharedAccess, Pet>
         ): Boolean {
             return oldItem.first.shareId == newItem.first.shareId
         }
 
         override fun areContentsTheSame(
-            oldItem: Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>,
-            newItem: Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>
+            oldItem: Pair<SharedAccess, Pet>,
+            newItem: Pair<SharedAccess, Pet>
         ): Boolean {
             return oldItem == newItem
         }
@@ -237,7 +239,7 @@ class SharedAccessAdapter(
     inner class ViewHolder(
         private val binding: com.hfad.pet_scheduling.databinding.ItemSharedAccessBinding
     ) : androidx.recyclerview.widget.RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Pair<com.hfad.pet_scheduling.data.local.entities.SharedAccess, com.hfad.pet_scheduling.data.local.entities.Pet>) {
+        fun bind(item: Pair<SharedAccess, Pet>) {
             val (sharedAccess, pet) = item
             binding.tvPetName.text = pet.name
             binding.tvPermission.text = Constants.PermissionLevel.getDisplayName(sharedAccess.permissionLevel)

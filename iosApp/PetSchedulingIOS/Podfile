@@ -1,0 +1,11 @@
+platform :ios, '13.0'
+use_frameworks!
+
+target 'PetSchedulingIOS' do
+  pod 'Firebase/Auth'
+  pod 'Firebase/Firestore'
+  pod 'Firebase/Storage'
+  pod 'Firebase/Messaging'
+  pod 'Firebase/Analytics'
+  pod 'GoogleSignIn'
+end

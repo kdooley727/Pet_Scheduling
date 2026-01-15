@@ -12,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
@@ -100,28 +101,40 @@ class PetListFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        petViewModel.pets.observe(viewLifecycleOwner) { pets ->
-            android.util.Log.d("PetListFragment", "Pets updated: ${pets.size} pets")
-            if (pets.isEmpty()) {
-                binding.emptyState.visibility = View.VISIBLE
-                binding.recyclerViewPets.visibility = View.GONE
-            } else {
-                binding.emptyState.visibility = View.GONE
-                binding.recyclerViewPets.visibility = View.VISIBLE
-                petAdapter.submitList(pets)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.pets.collect { pets ->
+                    android.util.Log.d("PetListFragment", "Pets updated: ${pets.size} pets")
+                    if (pets.isEmpty()) {
+                        binding.emptyState.visibility = View.VISIBLE
+                        binding.recyclerViewPets.visibility = View.GONE
+                    } else {
+                        binding.emptyState.visibility = View.GONE
+                        binding.recyclerViewPets.visibility = View.VISIBLE
+                        petAdapter.submitList(pets)
+                    }
+                }
             }
         }
 
-        petViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            android.util.Log.d("PetListFragment", "Loading state: $isLoading")
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.isLoading.collect { isLoading ->
+                    android.util.Log.d("PetListFragment", "Loading state: $isLoading")
+                    binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                }
+            }
         }
 
-        petViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                android.util.Log.e("PetListFragment", "Error: $it")
-                Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
-                petViewModel.clearError()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                petViewModel.errorMessage.collect { error ->
+                    error?.let {
+                        android.util.Log.e("PetListFragment", "Error: $it")
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                        petViewModel.clearError()
+                    }
+                }
             }
         }
     }
@@ -132,9 +145,18 @@ class PetListFragment : Fragment() {
         }
 
         binding.btnSignOut.setOnClickListener {
-            val auth = FirebaseAuth.getInstance()
-            auth.signOut()
-            findNavController().navigate(R.id.action_petListFragment_to_loginFragment)
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Sign Out")
+                .setMessage("Are you sure you want to sign out?")
+                .setPositiveButton("Sign Out") { _, _ ->
+                    val auth = FirebaseAuth.getInstance()
+                    auth.signOut()
+                    // Note: Database cleanup handled by shared module
+                    Toast.makeText(requireContext(), "Signed out", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_petListFragment_to_loginFragment)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
         binding.btnSettings.setOnClickListener {
@@ -146,7 +168,7 @@ class PetListFragment : Fragment() {
         }
     }
 
-    private fun showPetOptionsMenu(pet: com.hfad.pet_scheduling.data.local.entities.Pet) {
+    private fun showPetOptionsMenu(pet: com.hfad.pet_scheduling.data.entities.Pet) {
         val popupMenu = android.widget.PopupMenu(requireContext(), binding.recyclerViewPets)
         popupMenu.menuInflater.inflate(R.menu.pet_options_menu, popupMenu.menu)
 
@@ -176,7 +198,7 @@ class PetListFragment : Fragment() {
         popupMenu.show()
     }
 
-    private fun showDeleteConfirmation(pet: com.hfad.pet_scheduling.data.local.entities.Pet) {
+    private fun showDeleteConfirmation(pet: com.hfad.pet_scheduling.data.entities.Pet) {
         com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle("Delete Pet")
             .setMessage("Are you sure you want to delete ${pet.name}? This will also delete all associated tasks and cannot be undone.")

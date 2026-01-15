@@ -9,12 +9,16 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.databinding.FragmentAddEditTaskBinding
 import com.hfad.pet_scheduling.data.TaskTemplate
 import com.hfad.pet_scheduling.utils.Constants
@@ -116,22 +120,34 @@ class AddEditTaskFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        scheduleViewModel.selectedTask.observe(viewLifecycleOwner) { task ->
-            task?.let {
-                populateForm(it)
-                petId = it.petId
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.selectedTask.collect { task ->
+                    task?.let {
+                        populateForm(it)
+                        petId = it.petId
+                    }
+                }
             }
         }
 
-        scheduleViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.btnSaveTask.isEnabled = !isLoading
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.isLoading.collect { isLoading ->
+                    binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                    binding.btnSaveTask.isEnabled = !isLoading
+                }
+            }
         }
 
-        scheduleViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                scheduleViewModel.clearError()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.errorMessage.collect { error ->
+                    error?.let {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                        scheduleViewModel.clearError()
+                    }
+                }
             }
         }
     }

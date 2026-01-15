@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Pet_Scheduling"
 include(":app")
+include(":shared")

@@ -7,13 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
 import com.hfad.pet_scheduling.databinding.FragmentTaskDetailBinding
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.DateTimeUtils
 import com.hfad.pet_scheduling.viewmodels.ScheduleViewModel
@@ -73,31 +78,47 @@ class TaskDetailFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        scheduleViewModel.selectedTask.observe(viewLifecycleOwner) { task ->
-            task?.let {
-                populateTaskDetails(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.selectedTask.collect { task ->
+                    task?.let {
+                        populateTaskDetails(it)
+                    }
+                }
             }
         }
 
-        scheduleViewModel.completedTasks.observe(viewLifecycleOwner) { completedTasks ->
-            if (completedTasks.isEmpty()) {
-                binding.emptyCompletions.visibility = View.VISIBLE
-                binding.recyclerViewCompletions.visibility = View.GONE
-            } else {
-                binding.emptyCompletions.visibility = View.GONE
-                binding.recyclerViewCompletions.visibility = View.VISIBLE
-                completedTaskAdapter.submitList(completedTasks)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.completedTasks.collect { completedTasks ->
+                    if (completedTasks.isEmpty()) {
+                        binding.emptyCompletions.visibility = View.VISIBLE
+                        binding.recyclerViewCompletions.visibility = View.GONE
+                    } else {
+                        binding.emptyCompletions.visibility = View.GONE
+                        binding.recyclerViewCompletions.visibility = View.VISIBLE
+                        completedTaskAdapter.submitList(completedTasks)
+                    }
+                }
             }
         }
 
-        scheduleViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.isLoading.collect { isLoading ->
+                    binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                }
+            }
         }
 
-        scheduleViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                scheduleViewModel.clearError()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduleViewModel.errorMessage.collect { error ->
+                    error?.let {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                        scheduleViewModel.clearError()
+                    }
+                }
             }
         }
     }
@@ -123,7 +144,7 @@ class TaskDetailFragment : Fragment() {
         }
     }
 
-    private fun populateTaskDetails(task: com.hfad.pet_scheduling.data.local.entities.ScheduleTask) {
+    private fun populateTaskDetails(task: ScheduleTask) {
         binding.apply {
             tvTaskTitle.text = task.title
             tvTaskCategory.text = Constants.TaskCategory.getDisplayName(task.category)

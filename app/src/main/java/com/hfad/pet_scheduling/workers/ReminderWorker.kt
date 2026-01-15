@@ -3,8 +3,7 @@ package com.hfad.pet_scheduling.workers
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.hfad.pet_scheduling.data.local.AppDatabase
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.utils.NotificationHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,8 +29,13 @@ class ReminderWorker(
             }
 
             // Verify task is still active before showing notification
-            val database = AppDatabase.getDatabase(applicationContext)
-            val task = database.taskDao().getTaskById(taskId)
+            val application = applicationContext as? PetSchedulingApplication
+            val scheduleRepository = application?.scheduleRepository
+            if (scheduleRepository == null) {
+                android.util.Log.e("ReminderWorker", "ScheduleRepository not available")
+                return@withContext Result.retry()
+            }
+            val task = scheduleRepository.getTaskByIdSuspend(taskId)
 
             if (task == null || !task.isActive) {
                 android.util.Log.d(

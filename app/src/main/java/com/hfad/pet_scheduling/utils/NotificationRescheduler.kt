@@ -3,9 +3,10 @@ package com.hfad.pet_scheduling.utils
 import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
-import com.hfad.pet_scheduling.data.local.AppDatabase
+import com.hfad.pet_scheduling.PetSchedulingApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -30,10 +31,16 @@ class NotificationRescheduler(private val context: Context) {
                 
                 Log.d("NotificationRescheduler", "🔄 Starting to reschedule notifications for user: ${currentUser.uid}")
                 
-                val database = AppDatabase.getDatabase(context)
-                
+                val application = context.applicationContext as? PetSchedulingApplication
+                val scheduleRepository = application?.scheduleRepository
+                val petRepository = application?.petRepository
+                if (scheduleRepository == null || petRepository == null) {
+                    Log.e("NotificationRescheduler", "Repositories not available")
+                    return@launch
+                }
+
                 // Get all active tasks
-                val allTasks = database.taskDao().getAllActiveTasks()
+                val allTasks = scheduleRepository.getAllActiveTasks()
                 
                 if (allTasks.isEmpty()) {
                     Log.d("NotificationRescheduler", "ℹ️ No active tasks found, nothing to reschedule")
@@ -45,6 +52,9 @@ class NotificationRescheduler(private val context: Context) {
                 var scheduledCount = 0
                 var skippedCount = 0
                 
+                val pets = petRepository.getAllPetsByUser(currentUser.uid).first()
+                val petMap = pets.associateBy { it.petId }
+
                 for (task in allTasks) {
                     // Only reschedule tasks for the current user
                     if (task.createdByUserId != currentUser.uid) {
@@ -53,8 +63,7 @@ class NotificationRescheduler(private val context: Context) {
                     }
                     
                     // Get pet name for the task
-                    val pet = database.petDao().getPetById(task.petId)
-                    val petName = pet?.name ?: "Your pet"
+                    val petName = petMap[task.petId]?.name ?: "Your pet"
                     
                     // Cancel any existing notifications for this task first
                     notificationScheduler.cancelNotification(task.taskId)
@@ -91,18 +100,26 @@ class NotificationRescheduler(private val context: Context) {
                 
                 Log.d("NotificationRescheduler", "🔄 Rescheduling notifications for ${petIds.size} pet(s)")
                 
-                val database = AppDatabase.getDatabase(context)
-                
+                val application = context.applicationContext as? PetSchedulingApplication
+                val scheduleRepository = application?.scheduleRepository
+                val petRepository = application?.petRepository
+                if (scheduleRepository == null || petRepository == null) {
+                    Log.e("NotificationRescheduler", "Repositories not available")
+                    return@launch
+                }
+
                 // Get all active tasks and filter by pet IDs
-                val allTasks = database.taskDao().getAllActiveTasks()
+                val allTasks = scheduleRepository.getAllActiveTasks()
                 val filteredTasks = allTasks.filter { it.petId in petIds && it.createdByUserId == currentUser.uid }
                 
                 var scheduledCount = 0
                 
+                val pets = petRepository.getAllPetsByUser(currentUser.uid).first()
+                val petMap = pets.associateBy { it.petId }
+
                 for (task in filteredTasks) {
                     // Get pet name
-                    val pet = database.petDao().getPetById(task.petId)
-                    val petName = pet?.name ?: "Your pet"
+                    val petName = petMap[task.petId]?.name ?: "Your pet"
                     
                     // Cancel existing notifications and reschedule
                     notificationScheduler.cancelNotification(task.taskId)

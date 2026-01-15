@@ -4,9 +4,9 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.hfad.pet_scheduling.data.local.entities.CompletedTask
-import com.hfad.pet_scheduling.data.local.entities.Pet
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.CompletedTask
+import com.hfad.pet_scheduling.data.entities.Pet
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import kotlinx.coroutines.tasks.await
 
 /**

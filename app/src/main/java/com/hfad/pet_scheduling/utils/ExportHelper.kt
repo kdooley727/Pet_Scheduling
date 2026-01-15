@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import com.hfad.pet_scheduling.data.local.entities.CompletedTask
-import com.hfad.pet_scheduling.data.local.entities.Pet
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.CompletedTask
+import com.hfad.pet_scheduling.data.entities.Pet
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.utils.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

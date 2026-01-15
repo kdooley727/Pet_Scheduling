@@ -75,7 +75,7 @@ class CloudSyncManager(
                 )
 
                 // Sync completed tasks (get from all tasks)
-                val completedTasks = mutableListOf<com.hfad.pet_scheduling.data.local.entities.CompletedTask>()
+                val completedTasks = mutableListOf<com.hfad.pet_scheduling.data.entities.CompletedTask>()
                 allTasks.forEach { task ->
                     val completed = application.scheduleRepository
                         .getCompletedTasksByTaskId(task.taskId).first()

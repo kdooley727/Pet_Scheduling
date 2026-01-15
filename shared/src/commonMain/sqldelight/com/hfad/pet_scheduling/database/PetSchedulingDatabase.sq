@@ -1,0 +1,74 @@
+-- Pets table
+CREATE TABLE pets (
+    petId TEXT NOT NULL PRIMARY KEY,
+    userId TEXT NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    breed TEXT,
+    birthDate INTEGER,
+    photoUrl TEXT,
+    notes TEXT,
+    vetName TEXT,
+    vetPhone TEXT,
+    vetEmail TEXT,
+    vetAddress TEXT,
+    emergencyContactName TEXT,
+    emergencyContactPhone TEXT,
+    emergencyContactEmail TEXT,
+    emergencyContactRelationship TEXT,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE INDEX pets_userId ON pets(userId);
+
+-- Schedule tasks table
+CREATE TABLE schedule_tasks (
+    taskId TEXT NOT NULL PRIMARY KEY,
+    petId TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL,
+    startTime INTEGER NOT NULL,
+    recurrencePattern TEXT NOT NULL,
+    recurrenceInterval INTEGER NOT NULL DEFAULT 1,
+    reminderMinutesBefore INTEGER NOT NULL DEFAULT 15,
+    isActive INTEGER NOT NULL DEFAULT 1,
+    createdAt INTEGER NOT NULL,
+    createdByUserId TEXT NOT NULL,
+    FOREIGN KEY (petId) REFERENCES pets(petId) ON DELETE CASCADE
+);
+
+CREATE INDEX schedule_tasks_petId ON schedule_tasks(petId);
+CREATE INDEX schedule_tasks_startTime ON schedule_tasks(startTime);
+
+-- Completed tasks table
+CREATE TABLE completed_tasks (
+    completedTaskId TEXT NOT NULL PRIMARY KEY,
+    taskId TEXT NOT NULL,
+    completedAt INTEGER NOT NULL,
+    completedByUserId TEXT NOT NULL,
+    notes TEXT,
+    scheduledTime INTEGER,
+    FOREIGN KEY (taskId) REFERENCES schedule_tasks(taskId) ON DELETE CASCADE
+);
+
+CREATE INDEX completed_tasks_taskId ON completed_tasks(taskId);
+CREATE INDEX completed_tasks_completedAt ON completed_tasks(completedAt);
+
+-- Shared access table
+CREATE TABLE shared_access (
+    shareId TEXT NOT NULL PRIMARY KEY,
+    petId TEXT NOT NULL,
+    ownerUserId TEXT NOT NULL,
+    sharedWithUserId TEXT NOT NULL,
+    permissionLevel TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    isActive INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (petId) REFERENCES pets(petId) ON DELETE CASCADE,
+    UNIQUE(petId, sharedWithUserId)
+);
+
+CREATE INDEX shared_access_petId ON shared_access(petId);
+CREATE INDEX shared_access_sharedWithUserId ON shared_access(sharedWithUserId);
+

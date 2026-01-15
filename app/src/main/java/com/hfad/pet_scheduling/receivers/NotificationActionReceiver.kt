@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
-import com.hfad.pet_scheduling.data.local.AppDatabase
+import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.utils.NotificationHelper
 import com.hfad.pet_scheduling.utils.NotificationScheduler
 import kotlinx.coroutines.CoroutineScope
@@ -56,8 +56,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
                     return@launch
                 }
                 
-                val database = AppDatabase.getDatabase(context)
-                val task = database.taskDao().getTaskById(taskId)
+                val application = context.applicationContext as? PetSchedulingApplication
+                val scheduleRepository = application?.scheduleRepository
+                if (scheduleRepository == null) {
+                    Log.e("NotificationActionReceiver", "ScheduleRepository not available")
+                    return@launch
+                }
+                val task = scheduleRepository.getTaskByIdSuspend(taskId)
                 
                 if (task == null) {
                     Log.e("NotificationActionReceiver", "Task not found: $taskId")
@@ -65,14 +70,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 }
                 
                 // Mark task as completed
-                val completedTaskDao = database.completedTaskDao()
-                val completedTask = com.hfad.pet_scheduling.data.local.entities.CompletedTask(
+                scheduleRepository.markTaskCompleted(
                     taskId = taskId,
                     completedByUserId = currentUser.uid,
                     notes = "Completed from notification",
                     scheduledTime = System.currentTimeMillis()
                 )
-                completedTaskDao.insertCompletedTask(completedTask)
                 
                 // Cancel any remaining notifications for this task
                 val notificationScheduler = NotificationScheduler(context)
@@ -94,8 +97,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
             try {
                 Log.d("NotificationActionReceiver", "⏰ Snooze action for task: $taskId")
                 
-                val database = AppDatabase.getDatabase(context)
-                val task = database.taskDao().getTaskById(taskId)
+                val application = context.applicationContext as? PetSchedulingApplication
+                val scheduleRepository = application?.scheduleRepository
+                if (scheduleRepository == null) {
+                    Log.e("NotificationActionReceiver", "ScheduleRepository not available")
+                    return@launch
+                }
+                val task = scheduleRepository.getTaskByIdSuspend(taskId)
                 
                 if (task == null || !task.isActive) {
                     Log.e("NotificationActionReceiver", "Task not found or inactive: $taskId")

@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.hfad.pet_scheduling.data.local.entities.Pet
+import com.hfad.pet_scheduling.data.entities.Pet
 import com.hfad.pet_scheduling.databinding.ItemPetBinding
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.DateTimeUtils

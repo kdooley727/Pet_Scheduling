@@ -1,0 +1,29 @@
+import kotlin.collections.List;
+
+getSharedPetsForUser:
+SELECT * FROM shared_access
+WHERE sharedWithUserId = ? AND isActive = 1;
+
+getPetsSharedByUser:
+SELECT * FROM shared_access
+WHERE ownerUserId = ? AND isActive = 1;
+
+getPermissionLevel:
+SELECT permissionLevel FROM shared_access
+WHERE petId = ? AND sharedWithUserId = ? AND isActive = 1;
+
+insertSharedAccess:
+INSERT OR REPLACE INTO shared_access (
+    shareId, petId, ownerUserId, sharedWithUserId, permissionLevel, createdAt, isActive
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updatePermissionLevel:
+UPDATE shared_access
+SET permissionLevel = ?
+WHERE shareId = ?;
+
+setSharedAccessActive:
+UPDATE shared_access
+SET isActive = ?
+WHERE shareId = ?;
+

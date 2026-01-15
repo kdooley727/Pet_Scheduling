@@ -1,14 +1,15 @@
 package com.hfad.pet_scheduling.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hfad.pet_scheduling.data.local.entities.CompletedTask
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.CompletedTask
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.data.repository.PetRepository
 import com.hfad.pet_scheduling.data.repository.ScheduleRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -16,6 +17,7 @@ import com.hfad.pet_scheduling.utils.DateTimeUtils
 import com.hfad.pet_scheduling.utils.NotificationScheduler
 import com.hfad.pet_scheduling.widgets.TaskWidgetProvider
 import com.hfad.pet_scheduling.PetSchedulingApplication
+import com.hfad.pet_scheduling.data.remote.FirestoreSyncService
 import kotlinx.coroutines.launch
 
 class ScheduleViewModel(
@@ -26,23 +28,23 @@ class ScheduleViewModel(
     
     private val notificationScheduler = NotificationScheduler(application)
     private val cloudSyncManager = (application as? PetSchedulingApplication)?.cloudSyncManager
-    private val _tasks = MutableLiveData<List<ScheduleTask>>()
-    val tasks: LiveData<List<ScheduleTask>> = _tasks
+    private val _tasks = MutableStateFlow<List<ScheduleTask>>(emptyList())
+    val tasks: StateFlow<List<ScheduleTask>> = _tasks.asStateFlow()
 
-    private val _selectedTask = MutableLiveData<ScheduleTask?>()
-    val selectedTask: LiveData<ScheduleTask?> = _selectedTask
+    private val _selectedTask = MutableStateFlow<ScheduleTask?>(null)
+    val selectedTask: StateFlow<ScheduleTask?> = _selectedTask.asStateFlow()
 
-    private val _upcomingTasks = MutableLiveData<List<ScheduleTask>>()
-    val upcomingTasks: LiveData<List<ScheduleTask>> = _upcomingTasks
+    private val _upcomingTasks = MutableStateFlow<List<ScheduleTask>>(emptyList())
+    val upcomingTasks: StateFlow<List<ScheduleTask>> = _upcomingTasks.asStateFlow()
 
-    private val _completedTasks = MutableLiveData<List<CompletedTask>>()
-    val completedTasks: LiveData<List<CompletedTask>> = _completedTasks
+    private val _completedTasks = MutableStateFlow<List<CompletedTask>>(emptyList())
+    val completedTasks: StateFlow<List<CompletedTask>> = _completedTasks.asStateFlow()
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> = _errorMessage
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     /**
      * Load active tasks for a specific pet
@@ -53,7 +55,9 @@ class ScheduleViewModel(
                 _isLoading.value = true
                 scheduleRepository.getActiveTasksByPet(petId).collect { taskList ->
                     _tasks.value = taskList
-                    _isLoading.value = false
+                    if (_isLoading.value) {
+                        _isLoading.value = false
+                    }
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error loading tasks: ${e.message}"
@@ -71,7 +75,9 @@ class ScheduleViewModel(
                 _isLoading.value = true
                 scheduleRepository.getActiveTasksByPets(petIds).collect { taskList ->
                     _tasks.value = taskList
-                    _isLoading.value = false
+                    if (_isLoading.value) {
+                        _isLoading.value = false
+                    }
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error loading tasks: ${e.message}"
@@ -113,7 +119,9 @@ class ScheduleViewModel(
                 scheduleRepository.getTasksInDateRange(petIds, startTime, endTime)
                     .collect { taskList ->
                         _tasks.value = taskList
-                        _isLoading.value = false
+                        if (_isLoading.value) {
+                            _isLoading.value = false
+                        }
                     }
             } catch (e: Exception) {
                 _errorMessage.value = "Error loading tasks: ${e.message}"
@@ -212,13 +220,23 @@ class ScheduleViewModel(
                 // Cancel notifications before deleting
                 notificationScheduler.cancelNotification(task.taskId)
                 
+                // Delete from cloud first (before local deletion)
+                val syncService = FirestoreSyncService()
+                syncService.deleteTaskFromCloud(task.taskId).fold(
+                    onSuccess = {
+                        android.util.Log.d("ScheduleViewModel", "✅ Task deleted from Firestore: ${task.title}")
+                    },
+                    onFailure = { e ->
+                        android.util.Log.e("ScheduleViewModel", "❌ Failed to delete task from Firestore", e)
+                        // Continue with local deletion even if cloud deletion fails
+                    }
+                )
+                
                 // Update widget
                 updateWidget(application)
                 
+                // Delete from local database
                 scheduleRepository.deleteTask(task)
-                
-                // Sync to cloud
-                cloudSyncManager?.syncToCloud()
                 
                 _isLoading.value = false
             } catch (e: Exception) {
@@ -236,13 +254,29 @@ class ScheduleViewModel(
             try {
                 _isLoading.value = true
                 
+                // Get task first to have it for logging
+                val task = scheduleRepository.getTaskByIdSuspend(taskId)
+                
                 // Cancel notifications before deleting
                 notificationScheduler.cancelNotification(taskId)
                 
+                // Delete from cloud first (before local deletion)
+                val syncService = FirestoreSyncService()
+                syncService.deleteTaskFromCloud(taskId).fold(
+                    onSuccess = {
+                        android.util.Log.d("ScheduleViewModel", "✅ Task deleted from Firestore: $taskId")
+                    },
+                    onFailure = { e ->
+                        android.util.Log.e("ScheduleViewModel", "❌ Failed to delete task from Firestore", e)
+                        // Continue with local deletion even if cloud deletion fails
+                    }
+                )
+                
+                // Delete from local database
                 scheduleRepository.deleteTaskById(taskId)
                 
-                // Sync to cloud
-                cloudSyncManager?.syncToCloud()
+                // Update widget
+                updateWidget(application)
                 
                 _isLoading.value = false
             } catch (e: Exception) {

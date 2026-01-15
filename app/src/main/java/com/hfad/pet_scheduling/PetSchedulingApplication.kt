@@ -2,7 +2,8 @@ package com.hfad.pet_scheduling
 
 import android.app.Application
 import android.util.Log
-import com.hfad.pet_scheduling.data.local.AppDatabase
+import com.hfad.pet_scheduling.data.database.DatabaseDriverFactory
+import com.hfad.pet_scheduling.data.database.DatabaseHelper
 import com.hfad.pet_scheduling.data.repository.PetRepository
 import com.hfad.pet_scheduling.data.repository.ScheduleRepository
 import com.hfad.pet_scheduling.utils.CloudSyncManager
@@ -22,23 +23,23 @@ class PetSchedulingApplication : Application() {
         }
     }
 
-    // Database instance
-    val database by lazy {
+    // Database helper using SQLDelight
+    private val databaseHelper by lazy {
         try {
-            AppDatabase.getDatabase(this)
+            val driverFactory = DatabaseDriverFactory(this)
+            DatabaseHelper(driverFactory)
         } catch (e: Exception) {
-            Log.e(TAG, "Error initializing database", e)
+            Log.e(TAG, "Error initializing DatabaseHelper", e)
             throw e
         }
     }
 
+    val database get() = databaseHelper.database
+
     // Repositories
     val petRepository by lazy {
         try {
-            PetRepository(
-                database.petDao(),
-                database.sharedAccessDao()
-            )
+            PetRepository(database)
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing PetRepository", e)
             throw e
@@ -47,10 +48,7 @@ class PetSchedulingApplication : Application() {
 
     val scheduleRepository by lazy {
         try {
-            ScheduleRepository(
-                database.taskDao(),
-                database.completedTaskDao()
-            )
+            ScheduleRepository(database)
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing ScheduleRepository", e)
             throw e

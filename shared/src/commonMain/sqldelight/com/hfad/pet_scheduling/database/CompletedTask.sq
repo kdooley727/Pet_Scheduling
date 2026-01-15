@@ -1,0 +1,31 @@
+import kotlin.collections.List;
+
+getCompletedTasksByTaskId:
+SELECT * FROM completed_tasks
+WHERE taskId = ?
+ORDER BY completedAt DESC;
+
+getCompletedTasksByDateRange:
+SELECT * FROM completed_tasks
+WHERE taskId IN ? AND completedAt BETWEEN ? AND ?
+ORDER BY completedAt DESC;
+
+getCompletedTasksByPet:
+SELECT ct.* FROM completed_tasks ct
+INNER JOIN schedule_tasks st ON ct.taskId = st.taskId
+WHERE st.petId = ?
+ORDER BY ct.completedAt DESC;
+
+getCompletionCount:
+SELECT COUNT(*) FROM completed_tasks
+WHERE taskId = ?;
+
+insertCompletedTask:
+INSERT OR REPLACE INTO completed_tasks (
+    completedTaskId, taskId, completedAt, completedByUserId, notes, scheduledTime
+) VALUES (?, ?, ?, ?, ?, ?);
+
+deleteCompletedTask:
+DELETE FROM completed_tasks
+WHERE completedTaskId = ?;
+

@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.hfad.pet_scheduling.data.local.entities.CompletedTask
+import com.hfad.pet_scheduling.data.entities.CompletedTask
 import com.hfad.pet_scheduling.databinding.ItemCompletedTaskBinding
 import com.hfad.pet_scheduling.utils.DateTimeUtils
 

@@ -13,6 +13,8 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.hfad.pet_scheduling.PetSchedulingApplication
 import com.hfad.pet_scheduling.R
+import com.hfad.pet_scheduling.data.entities.CompletedTask
+import com.hfad.pet_scheduling.data.entities.Pet
 import com.hfad.pet_scheduling.databinding.FragmentStatisticsBinding
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.StatisticsCalculator
@@ -65,7 +67,7 @@ class StatisticsFragment : Fragment() {
                     val allTasks = application.scheduleRepository.getAllActiveTasks()
                     
                     // Get all completed tasks
-                    val allCompletedTasks = mutableListOf<com.hfad.pet_scheduling.data.local.entities.CompletedTask>()
+                    val allCompletedTasks = mutableListOf<CompletedTask>()
                     pets.forEach { pet ->
                         val petCompletedTasks = application.scheduleRepository.getCompletedTasksByPet(pet.petId)
                         allCompletedTasks.addAll(petCompletedTasks)
@@ -85,9 +87,9 @@ class StatisticsFragment : Fragment() {
 
     private suspend fun displayStatistics(
         taskStats: com.hfad.pet_scheduling.data.TaskStatistics,
-        pets: List<com.hfad.pet_scheduling.data.local.entities.Pet>,
+        pets: List<Pet>,
         application: PetSchedulingApplication,
-        allCompletedTasks: List<com.hfad.pet_scheduling.data.local.entities.CompletedTask>
+        allCompletedTasks: List<CompletedTask>
     ) {
         // Update overview cards
         binding.tvTotalTasks.text = taskStats.totalTasks.toString()
@@ -147,9 +149,9 @@ class StatisticsFragment : Fragment() {
     }
 
     private suspend fun displayPetStats(
-        pets: List<com.hfad.pet_scheduling.data.local.entities.Pet>,
+        pets: List<Pet>,
         application: PetSchedulingApplication,
-        allCompletedTasks: List<com.hfad.pet_scheduling.data.local.entities.CompletedTask>
+        allCompletedTasks: List<CompletedTask>
     ) {
         binding.petStatsContainer.removeAllViews()
 

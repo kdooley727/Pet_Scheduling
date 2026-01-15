@@ -206,14 +206,17 @@
         android:src="@android:drawable/ic_input_add"
         app:tint="@android:color/white" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAISuggestions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="80dp"
-        android:src="@android:drawable/ic_menu_help"
+        android:text="Templates"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:contentDescription="Create a template schedule"
+        android:tooltipText="Create a template schedule"
         app:tint="@android:color/white"
         app:backgroundTint="?attr/colorPrimary" />
 

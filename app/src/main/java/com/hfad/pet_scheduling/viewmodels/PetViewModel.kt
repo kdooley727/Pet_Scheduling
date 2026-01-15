@@ -1,14 +1,15 @@
 package com.hfad.pet_scheduling.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hfad.pet_scheduling.data.local.entities.Pet
-import com.hfad.pet_scheduling.data.local.entities.SharedAccess
+import com.hfad.pet_scheduling.data.entities.Pet
+import com.hfad.pet_scheduling.data.entities.SharedAccess
 import com.hfad.pet_scheduling.data.repository.PetRepository
 import com.hfad.pet_scheduling.data.remote.FirestoreSyncService
 import com.hfad.pet_scheduling.utils.CloudSyncManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PetViewModel(
@@ -16,20 +17,23 @@ class PetViewModel(
     private val cloudSyncManager: CloudSyncManager? = null,
     private val scheduleRepository: com.hfad.pet_scheduling.data.repository.ScheduleRepository? = null
 ) : ViewModel() {
-    private val _pets = MutableLiveData<List<Pet>>()
-    val pets: LiveData<List<Pet>> = _pets
+    private val _pets = MutableStateFlow<List<Pet>>(emptyList())
+    val pets: StateFlow<List<Pet>> = _pets.asStateFlow()
 
-    private val _selectedPet = MutableLiveData<Pet?>()
-    val selectedPet: LiveData<Pet?> = _selectedPet
+    private val _selectedPet = MutableStateFlow<Pet?>(null)
+    val selectedPet: StateFlow<Pet?> = _selectedPet.asStateFlow()
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> = _errorMessage
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private val _sharedAccess = MutableLiveData<List<SharedAccess>>()
-    val sharedAccess: LiveData<List<SharedAccess>> = _sharedAccess
+    private val _saveResult = MutableStateFlow<Boolean?>(null)
+    val saveResult: StateFlow<Boolean?> = _saveResult.asStateFlow()
+
+    private val _sharedAccess = MutableStateFlow<List<SharedAccess>>(emptyList())
+    val sharedAccess: StateFlow<List<SharedAccess>> = _sharedAccess.asStateFlow()
 
     private var currentUserId: String? = null
 
@@ -54,13 +58,15 @@ class PetViewModel(
                 petRepository.getAllPetsByUser(userId).collect { petList ->
                     android.util.Log.d("PetViewModel", "Received ${petList.size} pets")
                     _pets.value = petList
-                    _isLoading.value = false
+                    if (_isLoading.value) {
+                        _isLoading.value = false
+                    }
                 }
             } catch (e: Exception) {
                 android.util.Log.e("PetViewModel", "Error loading pets", e)
                 _errorMessage.value = "Error loading pets: ${e.message ?: e.javaClass.simpleName}"
                 _isLoading.value = false
-                _pets.value = emptyList() // Set empty list on error
+                _pets.value = emptyList()
             }
         }
     }
@@ -88,6 +94,7 @@ class PetViewModel(
             try {
                 _isLoading.value = true
                 _errorMessage.value = null
+                _saveResult.value = null
                 
                 android.util.Log.d("PetViewModel", "Saving pet: name=${pet.name}, type=${pet.type}, isNewPet=$isNewPet")
                 
@@ -105,10 +112,12 @@ class PetViewModel(
                 cloudSyncManager?.syncToCloud()
                 
                 _isLoading.value = false
+                _saveResult.value = true
             } catch (e: Exception) {
                 android.util.Log.e("PetViewModel", "Error saving pet", e)
                 _errorMessage.value = "Error saving pet: ${e.message ?: e.javaClass.simpleName}"
                 _isLoading.value = false
+                _saveResult.value = false
             }
         }
     }
@@ -124,13 +133,17 @@ class PetViewModel(
                 
                 // Delete from cloud first (before local deletion)
                 val syncService = FirestoreSyncService()
-                syncService.deletePetFromCloud(pet.petId).fold(
+                val cloudDeleteResult = syncService.deletePetFromCloud(pet.petId)
+                val cloudDeleteSucceeded = cloudDeleteResult.isSuccess
+                
+                cloudDeleteResult.fold(
                     onSuccess = {
                         android.util.Log.d("PetViewModel", "✅ Pet deleted from Firestore")
                     },
                     onFailure = { e ->
                         android.util.Log.e("PetViewModel", "❌ Failed to delete pet from Firestore", e)
-                        // Continue with local deletion even if cloud deletion fails
+                        // Show warning - pet will be deleted locally but may reappear on sync
+                        _errorMessage.value = "Warning: Pet deleted locally but may reappear if cloud deletion failed. Please check your connection and try again if needed."
                     }
                 )
                 
@@ -158,8 +171,14 @@ class PetViewModel(
                 }
                 
                 // Delete from local database
+                // Note: If cloud deletion failed, the pet may reappear on next sync
+                // User should delete again when online to ensure it's removed from Firebase
                 petRepository.deletePet(pet)
                 android.util.Log.d("PetViewModel", "✅ Pet deleted from local database")
+                
+                if (!cloudDeleteSucceeded) {
+                    android.util.Log.w("PetViewModel", "⚠️ Cloud deletion failed - pet may reappear on sync")
+                }
                 
                 _isLoading.value = false
             } catch (e: Exception) {

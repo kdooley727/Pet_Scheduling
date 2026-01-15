@@ -1,13 +1,12 @@
 package com.hfad.pet_scheduling.viewmodels
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Observer
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import android.app.Application
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.repository.PetRepository
 import com.hfad.pet_scheduling.data.repository.ScheduleRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -21,19 +20,20 @@ import java.util.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ScheduleViewModelTest {
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-    
     private val testDispatcher = StandardTestDispatcher()
     
     private lateinit var mockRepository: ScheduleRepository
+    private lateinit var mockPetRepository: PetRepository
+    private lateinit var mockApplication: Application
     private lateinit var viewModel: ScheduleViewModel
     
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         mockRepository = mock()
-        viewModel = ScheduleViewModel(mockRepository)
+        mockPetRepository = mock()
+        mockApplication = mock()
+        viewModel = ScheduleViewModel(mockRepository, mockPetRepository, mockApplication)
     }
     
     @After
@@ -67,9 +67,6 @@ class ScheduleViewModelTest {
         )
         whenever(mockRepository.getActiveTasksByPet(petId)).thenReturn(flowOf(tasks))
         
-        val observer = Observer<List<ScheduleTask>> {}
-        viewModel.tasks.observeForever(observer)
-        
         // When
         viewModel.loadTasksForPet(petId)
         
@@ -80,7 +77,6 @@ class ScheduleViewModelTest {
         verify(mockRepository).getActiveTasksByPet(petId)
         assertEquals(tasks, viewModel.tasks.value)
         
-        viewModel.tasks.removeObserver(observer)
     }
     
     @Test

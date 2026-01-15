@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.hfad.pet_scheduling.data.local.entities.ScheduleTask
+import com.hfad.pet_scheduling.data.entities.ScheduleTask
 import com.hfad.pet_scheduling.databinding.ItemTaskBinding
 import com.hfad.pet_scheduling.utils.Constants
 import com.hfad.pet_scheduling.utils.DateTimeUtils
@@ -14,6 +14,13 @@ class TaskAdapter(
     private val onTaskClick: (ScheduleTask) -> Unit,
     private val onMarkComplete: (ScheduleTask) -> Unit
 ) : ListAdapter<ScheduleTask, TaskAdapter.TaskViewHolder>(TaskDiffCallback()) {
+
+    private var completedTaskIds: Set<String> = emptySet()
+
+    fun setCompletedTaskIds(taskIds: Set<String>) {
+        completedTaskIds = taskIds
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val binding = ItemTaskBinding.inflate(
@@ -34,6 +41,7 @@ class TaskAdapter(
 
         fun bind(task: ScheduleTask) {
             binding.apply {
+                val isCompleted = completedTaskIds.contains(task.taskId)
                 tvTaskTitle.text = task.title
                 tvTaskCategory.text = Constants.TaskCategory.getDisplayName(task.category)
                 
@@ -55,20 +63,20 @@ class TaskAdapter(
                     tvTaskDescription.visibility = ViewGroup.GONE
                 }
 
-                // Set status icon (active/inactive)
-                if (task.isActive) {
-                    ivTaskStatus.setImageResource(android.R.drawable.ic_menu_recent_history)
-                    ivTaskStatus.alpha = 1.0f
-                } else {
-                    ivTaskStatus.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                    ivTaskStatus.alpha = 0.5f
-                }
-
                 root.setOnClickListener {
                     onTaskClick(task)
                 }
 
-                binding.btnMarkComplete.setOnClickListener {
+                btnMarkComplete.text = if (isCompleted) "✓" else ""
+                btnMarkComplete.isEnabled = !isCompleted
+                btnMarkComplete.alpha = if (isCompleted) 1.0f else 0.6f
+                btnMarkComplete.contentDescription = if (isCompleted) {
+                    "Task completed"
+                } else {
+                    "Mark task complete"
+                }
+
+                btnMarkComplete.setOnClickListener {
                     onMarkComplete(task)
                 }
             }
