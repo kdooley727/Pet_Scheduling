@@ -89,16 +89,13 @@ class SharePetFragment : Fragment() {
             else -> Constants.PermissionLevel.VIEW
         }
 
-        // Note: In a real app, you'd need to look up the user by email in Firebase Auth
-        // For now, we'll store the email and the actual user lookup would happen server-side
-        // or when the shared user logs in
-
         lifecycleScope.launch {
             try {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.btnShare.isEnabled = false
 
                 val application = requireActivity().application as PetSchedulingApplication
+                val syncService = com.hfad.pet_scheduling.data.remote.FirestoreSyncService()
                 
                 // Get pet to verify ownership
                 val pet = application.petRepository.getPetByIdSuspend(petId!!)
@@ -112,22 +109,41 @@ class SharePetFragment : Fragment() {
                     return@launch
                 }
 
-                // For now, we'll create a shared access record with the email
-                // In production, you'd need to:
-                // 1. Look up user by email in Firebase Auth
-                // 2. Create SharedAccess with the actual userId
-                // 3. Send notification/email to the user
-
-                Toast.makeText(
-                    requireContext(),
-                    "Sharing functionality requires user lookup by email. This feature will be enhanced in future updates.",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                // TODO: Implement actual sharing when user lookup is available
-                // For now, just show a message
+                val emailStr = email!!.trim().lowercase()
+                val lookupResult = syncService.lookupUserIdByEmail(emailStr)
+                val sharedWithUserId = lookupResult.getOrNull()
                 
-                findNavController().popBackStack()
+                if (sharedWithUserId == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "User not found. They need to sign up for Pet Scheduling first using this email.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@launch
+                }
+                
+                if (sharedWithUserId == currentUser.uid) {
+                    Toast.makeText(requireContext(), "You cannot share a pet with yourself", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val createResult = syncService.createSharedAccessInFirestore(
+                    petId = petId!!,
+                    sharedWithUserId = sharedWithUserId,
+                    sharedWithEmail = emailStr,
+                    permissionLevel = permissionLevel
+                )
+                
+                createResult.fold(
+                    onSuccess = {
+                        Toast.makeText(requireContext(), "Successfully shared ${pet.name} with $emailStr", Toast.LENGTH_SHORT).show()
+                        application.cloudSyncManager.fullSync()
+                        findNavController().popBackStack()
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
             } catch (e: Exception) {
                 android.util.Log.e("SharePetFragment", "Error sharing pet", e)
                 Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()

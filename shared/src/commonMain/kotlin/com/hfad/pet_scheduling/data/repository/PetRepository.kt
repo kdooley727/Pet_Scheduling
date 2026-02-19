@@ -52,9 +52,35 @@ class PetRepository(
         val sharedAccess = getSharedPetsForUser(userId)
         
         return combine(ownedPets, sharedAccess) { owned, shared ->
-            val sharedPetIds = shared.map { it.petId }.toSet()
-            // For now, return owned pets. Later we can fetch shared pets by their IDs
-            owned
+            val ownedIds = owned.map { it.petId }.toSet()
+            val sharedPets = shared.mapNotNull { access ->
+                petQueries.getPetById(access.petId) { petId, userId, name, type, breed, birthDate, photoUrl, notes,
+                    vetName, vetPhone, vetEmail, vetAddress,
+                    emergencyContactName, emergencyContactPhone, emergencyContactEmail, emergencyContactRelationship,
+                    createdAt, updatedAt ->
+                    Pet(
+                        petId = petId,
+                        userId = userId,
+                        name = name,
+                        type = type,
+                        breed = breed,
+                        birthDate = birthDate,
+                        photoUrl = photoUrl,
+                        notes = notes,
+                        vetName = vetName,
+                        vetPhone = vetPhone,
+                        vetEmail = vetEmail,
+                        vetAddress = vetAddress,
+                        emergencyContactName = emergencyContactName,
+                        emergencyContactPhone = emergencyContactPhone,
+                        emergencyContactEmail = emergencyContactEmail,
+                        emergencyContactRelationship = emergencyContactRelationship,
+                        createdAt = createdAt,
+                        updatedAt = updatedAt
+                    )
+                }.executeAsOneOrNull()
+            }.filter { it.petId !in ownedIds }
+            owned + sharedPets
         }
     }
 

@@ -124,6 +124,16 @@ class CloudSyncManager(
                 _syncMessage.value = "Syncing from cloud..."
                 Log.d(TAG, "🔄 Starting cloud fetch...")
 
+                // Save user profile for email lookup when sharing
+                currentUser.email?.let { email ->
+                    if (email.isNotBlank()) {
+                        syncService.saveUserProfile(email, currentUser.displayName).fold(
+                            onSuccess = { Log.d(TAG, "✅ User profile saved") },
+                            onFailure = { Log.e(TAG, "Failed to save user profile", it) }
+                        )
+                    }
+                }
+
                 // Fetch pets from cloud
                 syncService.fetchPetsFromCloud().fold(
                     onSuccess = { cloudPets ->
@@ -158,6 +168,21 @@ class CloudSyncManager(
                         }
                     },
                     onFailure = { e -> Log.e(TAG, "❌ Failed to fetch pets from cloud", e) }
+                )
+
+                // Fetch shared pets and add to local
+                syncService.fetchSharedPetsFromCloud().fold(
+                    onSuccess = { sharedPets ->
+                        sharedPets.forEach { (sharedAccess, pet) ->
+                            val existingPet = application.petRepository.getPetByIdSuspend(pet.petId)
+                            if (existingPet == null) {
+                                application.petRepository.insertPet(pet)
+                                application.petRepository.sharePet(sharedAccess)
+                                Log.d(TAG, "➕ Added shared pet from cloud: ${pet.name}")
+                            }
+                        }
+                    },
+                    onFailure = { e -> Log.e(TAG, "❌ Failed to fetch shared pets", e) }
                 )
 
                 // Fetch tasks from cloud

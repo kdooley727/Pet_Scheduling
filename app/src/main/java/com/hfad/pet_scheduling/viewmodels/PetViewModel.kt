@@ -55,7 +55,7 @@ class PetViewModel(
                 _errorMessage.value = null
                 android.util.Log.d("PetViewModel", "Loading pets for userId: $userId")
                 
-                petRepository.getAllPetsByUser(userId).collect { petList ->
+                petRepository.getAllAccessiblePets(userId).collect { petList ->
                     android.util.Log.d("PetViewModel", "Received ${petList.size} pets")
                     _pets.value = petList
                     if (_isLoading.value) {

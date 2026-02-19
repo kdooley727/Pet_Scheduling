@@ -22,6 +22,8 @@ class FirestoreSyncService(
         private const val COLLECTION_PETS = "pets"
         private const val COLLECTION_TASKS = "tasks"
         private const val COLLECTION_COMPLETED_TASKS = "completed_tasks"
+        private const val COLLECTION_USERS = "users"
+        private const val COLLECTION_SHARED_ACCESS = "shared_access"
     }
 
     /**
@@ -231,6 +233,102 @@ class FirestoreSyncService(
     }
 
     /**
+     * Save user profile for email lookup when sharing
+     */
+    suspend fun saveUserProfile(email: String, displayName: String?): Result<Unit> {
+        val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
+        return try {
+            val data = mapOf(
+                "email" to email.lowercase().trim(),
+                "displayName" to (displayName ?: ""),
+                "updatedAt" to System.currentTimeMillis()
+            )
+            firestore.collection(COLLECTION_USERS).document(userId).set(data, com.google.firebase.firestore.SetOptions.merge()).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Look up user ID by email
+     */
+    suspend fun lookupUserIdByEmail(email: String): Result<String?> {
+        return try {
+            val snapshot = firestore.collection(COLLECTION_USERS)
+                .whereEqualTo("email", email.lowercase().trim())
+                .limit(1)
+                .get()
+                .await()
+            val userId = snapshot.documents.firstOrNull()?.id
+            Result.success(userId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Create shared access in Firestore
+     */
+    suspend fun createSharedAccessInFirestore(
+        petId: String,
+        sharedWithUserId: String,
+        sharedWithEmail: String,
+        permissionLevel: String
+    ): Result<Unit> {
+        val ownerUserId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
+        val ownerEmail = auth.currentUser?.email ?: ""
+        return try {
+            val shareId = java.util.UUID.randomUUID().toString()
+            val data = mapOf(
+                "shareId" to shareId,
+                "petId" to petId,
+                "ownerUserId" to ownerUserId,
+                "ownerEmail" to ownerEmail,
+                "sharedWithUserId" to sharedWithUserId,
+                "sharedWithEmail" to sharedWithEmail,
+                "permissionLevel" to permissionLevel,
+                "createdAt" to System.currentTimeMillis(),
+                "isActive" to true
+            )
+            firestore.collection(COLLECTION_SHARED_ACCESS).document(shareId).set(data).await()
+            Log.d(TAG, "✅ Created shared access for pet $petId with $sharedWithEmail")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to create shared access", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Fetch shared pets for current user from Firestore
+     */
+    suspend fun fetchSharedPetsFromCloud(): Result<List<Pair<com.hfad.pet_scheduling.data.entities.SharedAccess, Pet>>> {
+        val userId = getUserId() ?: return Result.failure(Exception("User not authenticated"))
+        return try {
+            val snapshot = firestore.collection(COLLECTION_SHARED_ACCESS)
+                .whereEqualTo("sharedWithUserId", userId)
+                .whereEqualTo("isActive", true)
+                .get()
+                .await()
+            val result = mutableListOf<Pair<com.hfad.pet_scheduling.data.entities.SharedAccess, Pet>>()
+            for (doc in snapshot.documents) {
+                val shared = doc.toSharedAccess()
+                val petDoc = firestore.collection(COLLECTION_PETS).document(shared.petId).get().await()
+                if (petDoc.exists()) {
+                    val pet = petDoc.toPet()
+                    result.add(shared to pet)
+                }
+            }
+            Log.d(TAG, "✅ Fetched ${result.size} shared pets from Firestore")
+            Result.success(result)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to fetch shared pets", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Delete task from Firestore
      */
     suspend fun deleteTaskFromCloud(taskId: String): Result<Unit> {
@@ -347,6 +445,18 @@ fun CompletedTask.toFirestoreMap(): Map<String, Any?> {
         "completedByUserId" to completedByUserId,
         "notes" to notes,
         "scheduledTime" to scheduledTime
+    )
+}
+
+fun com.google.firebase.firestore.DocumentSnapshot.toSharedAccess(): com.hfad.pet_scheduling.data.entities.SharedAccess {
+    return com.hfad.pet_scheduling.data.entities.SharedAccess(
+        shareId = getString("shareId") ?: id,
+        petId = getString("petId") ?: "",
+        ownerUserId = getString("ownerUserId") ?: "",
+        sharedWithUserId = getString("sharedWithUserId") ?: "",
+        permissionLevel = getString("permissionLevel") ?: "view",
+        createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
+        isActive = getBoolean("isActive") ?: true
     )
 }
 

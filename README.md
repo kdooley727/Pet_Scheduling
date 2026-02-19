@@ -4,7 +4,7 @@ A comprehensive Android application for managing pet care schedules with AI-powe
 
 ## 📱 Overview
 
-Pet Scheduling is a full-featured mobile application designed to help pet owners manage their pets' daily care routines. The app allows users to create detailed schedules for feeding, medication, grooming, exercise, and other pet care tasks, with intelligent AI suggestions and reminder notifications.
+Pet Scheduling is a full-featured **cross-platform** mobile application (Android + iOS) designed to help pet owners manage their pets' daily care routines. The app allows users to create detailed schedules for feeding, medication, grooming, exercise, and other pet care tasks, with intelligent AI suggestions and reminder notifications. Share pets with family, pet sitters, or boarding facilities—all synced via Firebase.
 
 ## ✨ Key Features
 
@@ -43,11 +43,11 @@ Pet Scheduling is a full-featured mobile application designed to help pet owners
 - **Action Notifications**: Quick actions directly from notification tray
 
 ### 👥 Collaboration Features
-- **Shared Access**: Share pet schedules with family members or pet sitters
-- **Permission Levels**: View-only, Edit, or Full Access permissions
-- **Multi-User Support**: Multiple users can manage the same pet's schedule
-- **Manage Shared Access**: View and manage all shared pet access permissions
-- **Cloud Sync**: Automatic synchronization of shared access across devices
+- **Pet Sharing**: Share pets with family, couples, pet sitters, or boarding facilities via email
+- **Cross-Platform**: Share between Android and iOS—both users see the same pets and tasks
+- **Permission Levels**: View-only (read), Edit (add/complete tasks), or Full Access (manage pet & share)
+- **Manage Shared Access**: View "Shared With Me" and "I Shared" in Settings; revoke access anytime
+- **Cloud Sync**: Automatic synchronization of pets, tasks, and shared access across devices
 
 ### 🔐 Authentication
 - **Firebase Authentication**: Secure email/password authentication
@@ -205,6 +205,16 @@ _Add screenshots of your app here to showcase the UI/UX_
 - **WorkManager**: Reliable background task execution
 
 ## 🆕 Recent Updates (Latest Release)
+
+### Version 1.3 Features (February 2025)
+- ✅ **Pet Sharing Between Users**: Share pets with family, pet sitters, or boarding facilities via email
+- ✅ **Cross-Platform Sharing**: Share between Android and iOS users seamlessly
+- ✅ **Permission Levels**: View-only, Edit, or Full Access when sharing
+- ✅ **Manage Shared Access**: View "Shared With Me" and "I Shared" in Settings
+- ✅ **iOS App**: Full SwiftUI app with Firebase sync, Google Sign-In, and feature parity with Android
+- ✅ **iOS Task Management**: Swipe-to-delete, pull-to-refresh, mark complete, local notifications
+- ✅ **iOS Polish**: Dynamic Type, Dark mode, Share pet info to other apps
+- ✅ **Firestore Rules**: Updated for users, shared_access, pets, tasks, and completed_tasks collections
 
 ### Version 1.1 Features
 - ✅ **Statistics Dashboard**: View completion rates, activity history, and analytics
