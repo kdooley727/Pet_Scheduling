@@ -1,0 +1,653 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F53BCAC44A24EB76DB506522 /* Pods_PetSchedulingiOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 551B681E207E1DBFA339C68F /* Pods_PetSchedulingiOS.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D774EA312F1EEFDD00754FF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D774EA162F1EEFD900754FF1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D774EA1D2F1EEFD900754FF1;
+			remoteInfo = PetSchedulingiOS;
+		};
+		D774EA3B2F1EEFDD00754FF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D774EA162F1EEFD900754FF1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D774EA1D2F1EEFD900754FF1;
+			remoteInfo = PetSchedulingiOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		551B681E207E1DBFA339C68F /* Pods_PetSchedulingiOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PetSchedulingiOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		85F852F3EDEE4B609E254D06 /* Pods-PetSchedulingiOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PetSchedulingiOS.release.xcconfig"; path = "Target Support Files/Pods-PetSchedulingiOS/Pods-PetSchedulingiOS.release.xcconfig"; sourceTree = "<group>"; };
+		D774EA1E2F1EEFD900754FF1 /* PetSchedulingiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetSchedulingiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D774EA302F1EEFDD00754FF1 /* PetSchedulingiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PetSchedulingiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D774EA3A2F1EEFDD00754FF1 /* PetSchedulingiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PetSchedulingiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FEE240C104C366056F3EFA7B /* Pods-PetSchedulingiOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PetSchedulingiOS.debug.xcconfig"; path = "Target Support Files/Pods-PetSchedulingiOS/Pods-PetSchedulingiOS.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D774EA202F1EEFD900754FF1 /* PetSchedulingiOS */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PetSchedulingiOS;
+			sourceTree = "<group>";
+		};
+		D774EA332F1EEFDD00754FF1 /* PetSchedulingiOSTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PetSchedulingiOSTests;
+			sourceTree = "<group>";
+		};
+		D774EA3D2F1EEFDD00754FF1 /* PetSchedulingiOSUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = PetSchedulingiOSUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D774EA1B2F1EEFD900754FF1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F53BCAC44A24EB76DB506522 /* Pods_PetSchedulingiOS.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D774EA2D2F1EEFDD00754FF1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D774EA372F1EEFDD00754FF1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0957EB2217856C05CEB4DB7A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				551B681E207E1DBFA339C68F /* Pods_PetSchedulingiOS.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D774EA152F1EEFD900754FF1 = {
+			isa = PBXGroup;
+			children = (
+				D774EA202F1EEFD900754FF1 /* PetSchedulingiOS */,
+				D774EA332F1EEFDD00754FF1 /* PetSchedulingiOSTests */,
+				D774EA3D2F1EEFDD00754FF1 /* PetSchedulingiOSUITests */,
+				D774EA1F2F1EEFD900754FF1 /* Products */,
+				ED30FBA24392B87E65E3D8F2 /* Pods */,
+				0957EB2217856C05CEB4DB7A /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		D774EA1F2F1EEFD900754FF1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D774EA1E2F1EEFD900754FF1 /* PetSchedulingiOS.app */,
+				D774EA302F1EEFDD00754FF1 /* PetSchedulingiOSTests.xctest */,
+				D774EA3A2F1EEFDD00754FF1 /* PetSchedulingiOSUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ED30FBA24392B87E65E3D8F2 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				FEE240C104C366056F3EFA7B /* Pods-PetSchedulingiOS.debug.xcconfig */,
+				85F852F3EDEE4B609E254D06 /* Pods-PetSchedulingiOS.release.xcconfig */,
+			);
+			name = Pods;
+			path = ../iosApp/PetSchedulingIOS/Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D774EA1D2F1EEFD900754FF1 /* PetSchedulingiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D774EA442F1EEFDD00754FF1 /* Build configuration list for PBXNativeTarget "PetSchedulingiOS" */;
+			buildPhases = (
+				4F9C6F5A7AA5C5F134390310 /* [CP] Check Pods Manifest.lock */,
+				D774EA1A2F1EEFD900754FF1 /* Sources */,
+				D774EA1B2F1EEFD900754FF1 /* Frameworks */,
+				D774EA1C2F1EEFD900754FF1 /* Resources */,
+				829EA10A556F1489541393DB /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D774EA202F1EEFD900754FF1 /* PetSchedulingiOS */,
+			);
+			name = PetSchedulingiOS;
+			productName = PetSchedulingiOS;
+			productReference = D774EA1E2F1EEFD900754FF1 /* PetSchedulingiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D774EA2F2F1EEFDD00754FF1 /* PetSchedulingiOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D774EA472F1EEFDD00754FF1 /* Build configuration list for PBXNativeTarget "PetSchedulingiOSTests" */;
+			buildPhases = (
+				D774EA2C2F1EEFDD00754FF1 /* Sources */,
+				D774EA2D2F1EEFDD00754FF1 /* Frameworks */,
+				D774EA2E2F1EEFDD00754FF1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D774EA322F1EEFDD00754FF1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D774EA332F1EEFDD00754FF1 /* PetSchedulingiOSTests */,
+			);
+			name = PetSchedulingiOSTests;
+			productName = PetSchedulingiOSTests;
+			productReference = D774EA302F1EEFDD00754FF1 /* PetSchedulingiOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D774EA392F1EEFDD00754FF1 /* PetSchedulingiOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D774EA4A2F1EEFDD00754FF1 /* Build configuration list for PBXNativeTarget "PetSchedulingiOSUITests" */;
+			buildPhases = (
+				D774EA362F1EEFDD00754FF1 /* Sources */,
+				D774EA372F1EEFDD00754FF1 /* Frameworks */,
+				D774EA382F1EEFDD00754FF1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D774EA3C2F1EEFDD00754FF1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D774EA3D2F1EEFDD00754FF1 /* PetSchedulingiOSUITests */,
+			);
+			name = PetSchedulingiOSUITests;
+			productName = PetSchedulingiOSUITests;
+			productReference = D774EA3A2F1EEFDD00754FF1 /* PetSchedulingiOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D774EA162F1EEFD900754FF1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					D774EA1D2F1EEFD900754FF1 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					D774EA2F2F1EEFDD00754FF1 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = D774EA1D2F1EEFD900754FF1;
+					};
+					D774EA392F1EEFDD00754FF1 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = D774EA1D2F1EEFD900754FF1;
+					};
+				};
+			};
+			buildConfigurationList = D774EA192F1EEFD900754FF1 /* Build configuration list for PBXProject "PetSchedulingiOS" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D774EA152F1EEFD900754FF1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D774EA1F2F1EEFD900754FF1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D774EA1D2F1EEFD900754FF1 /* PetSchedulingiOS */,
+				D774EA2F2F1EEFDD00754FF1 /* PetSchedulingiOSTests */,
+				D774EA392F1EEFDD00754FF1 /* PetSchedulingiOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D774EA1C2F1EEFD900754FF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D774EA2E2F1EEFDD00754FF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D774EA382F1EEFDD00754FF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4F9C6F5A7AA5C5F134390310 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PetSchedulingiOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		829EA10A556F1489541393DB /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-PetSchedulingiOS/Pods-PetSchedulingiOS-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-PetSchedulingiOS/Pods-PetSchedulingiOS-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-PetSchedulingiOS/Pods-PetSchedulingiOS-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D774EA1A2F1EEFD900754FF1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D774EA2C2F1EEFDD00754FF1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D774EA362F1EEFDD00754FF1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D774EA322F1EEFDD00754FF1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D774EA1D2F1EEFD900754FF1 /* PetSchedulingiOS */;
+			targetProxy = D774EA312F1EEFDD00754FF1 /* PBXContainerItemProxy */;
+		};
+		D774EA3C2F1EEFDD00754FF1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D774EA1D2F1EEFD900754FF1 /* PetSchedulingiOS */;
+			targetProxy = D774EA3B2F1EEFDD00754FF1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		D774EA422F1EEFDD00754FF1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D774EA432F1EEFDD00754FF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D774EA452F1EEFDD00754FF1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEE240C104C366056F3EFA7B /* Pods-PetSchedulingiOS.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_ASSET_PATHS = "\"PetSchedulingiOS/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = QTGQT76CVK;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(PROJECT_DIR)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Pet Scheduling";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kdooley.PetScheduling;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = PetScheduling_TestFlight_Manual;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D774EA462F1EEFDD00754FF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 85F852F3EDEE4B609E254D06 /* Pods-PetSchedulingiOS.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_ASSET_PATHS = "\"PetSchedulingiOS/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = QTGQT76CVK;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(PROJECT_DIR)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Pet Scheduling";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kdooley.PetScheduling;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = PetScheduling_TestFlight_Manual;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D774EA482F1EEFDD00754FF1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QTGQT76CVK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Personal.PetSchedulingiOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PetSchedulingiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PetSchedulingiOS";
+			};
+			name = Debug;
+		};
+		D774EA492F1EEFDD00754FF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QTGQT76CVK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Personal.PetSchedulingiOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PetSchedulingiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PetSchedulingiOS";
+			};
+			name = Release;
+		};
+		D774EA4B2F1EEFDD00754FF1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QTGQT76CVK;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Personal.PetSchedulingiOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PetSchedulingiOS;
+			};
+			name = Debug;
+		};
+		D774EA4C2F1EEFDD00754FF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QTGQT76CVK;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Personal.PetSchedulingiOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PetSchedulingiOS;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D774EA192F1EEFD900754FF1 /* Build configuration list for PBXProject "PetSchedulingiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D774EA422F1EEFDD00754FF1 /* Debug */,
+				D774EA432F1EEFDD00754FF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D774EA442F1EEFDD00754FF1 /* Build configuration list for PBXNativeTarget "PetSchedulingiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D774EA452F1EEFDD00754FF1 /* Debug */,
+				D774EA462F1EEFDD00754FF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D774EA472F1EEFDD00754FF1 /* Build configuration list for PBXNativeTarget "PetSchedulingiOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D774EA482F1EEFDD00754FF1 /* Debug */,
+				D774EA492F1EEFDD00754FF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D774EA4A2F1EEFDD00754FF1 /* Build configuration list for PBXNativeTarget "PetSchedulingiOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D774EA4B2F1EEFDD00754FF1 /* Debug */,
+				D774EA4C2F1EEFDD00754FF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D774EA162F1EEFD900754FF1 /* Project object */;
+}
